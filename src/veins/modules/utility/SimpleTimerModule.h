@@ -23,9 +23,7 @@ class SimpleTimerModule : public omnetpp::cSimpleModule
 		virtual ~SimpleTimerModule() override;
 
 		/**
-		 * Handle messages arriving at this class.
-		 * 
-		 * Timers be handled by calling their callbacks and enqueuing their next event, if applicable.
+		 * Handle messages arriving at this class. Wil
 		 */
 		virtual void handleMessage(omnetpp::cMessage *message) override;
 
@@ -79,7 +77,7 @@ class SimpleTimerModule : public omnetpp::cSimpleModule
 		 * @param name The Timer's name. Used for its message.
 		 * @param callback Function which is called when the Timer triggers.
 		 * @param time Time at which the Timer triggers.
-		 * @param time_interpretation Flag to indicate the semantics of the given time, see TimeScope.
+		 * @param  time_interpretation Flag to indicate the semantics of the given time, see TimeScope.
 		 */
 		const Timer addOneshotTimer(const std::string &name, std::function<void()> callback, omnetpp::simtime_t time, TimeInterpretation time_interpretation=TimeInterpretation::RELATIVE_TIME);
 
@@ -115,7 +113,10 @@ class SimpleTimerModule : public omnetpp::cSimpleModule
 		void cancelTimer(Timer timer);
 
 	private:
-		TimerList timers_; //! A list of all Timers which are currently active.
+		/**
+		 * A list of all Timers which are currently active.
+		 */
+		TimerList timers_;
 };
 
 } // namespace Veins
