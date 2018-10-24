@@ -105,6 +105,7 @@ public:
         double getWidth();
         double getAccel();
         double getDeccel();
+
         /**
          * Get the vehicle's CO2 emissions in mg during this time step.
          *
