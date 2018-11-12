@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2010-2018 Christoph Sommer <sommer@ccs-labs.org>
+// Copyright (C) 2018 Christoph Sommer <sommer@ccs-labs.org>
 //
 // Documentation for these modules is at http://veins.car2x.org/
 //
@@ -17,19 +17,28 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
+#ifndef TESTUTILS_SIMULATION_H
+#define TESTUTILS_SIMULATION_H
 
-package org.car2x.veins.modules.obstacle;
+#include <omnetpp.h>
 
-//
-// ObstacleControl models obstacles that block radio transmissions
-//
-simple ObstacleControl
-{
-    parameters:
-        @class(Veins::ObstacleControl);
-        bool debug = default(false);  // emit debug messages?
-        xml obstacles = default(xml("<obstacles/>")); // list of obstacle types and obstacles to load
-        @display("i=misc/town");
-        @labels(node);
-}
+class DummySimulation {
+public:
+    DummySimulation(omnetpp::cNullEnvir* envir)
+        : simulation("DummySimulation", envir)
+    {
+        // envir is stored and deleted automatically by omnet++
+        omnetpp::cSimulation::setActiveSimulation(&simulation);
+        omnetpp::SimTime::setScaleExp(-9);
+    }
+    ~DummySimulation()
+    {
+        omnetpp::cSimulation::setActiveSimulation(nullptr);
+    }
 
+private:
+    omnetpp::cStaticFlag csf;
+    omnetpp::cSimulation simulation;
+}; // end DummySimulation
+
+#endif

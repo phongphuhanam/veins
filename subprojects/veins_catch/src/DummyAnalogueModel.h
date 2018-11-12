@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2018 Fabian Bronner <fabian.bronner@ccs-labs.org>
+// Copyright (C) 2018 Dominik S. Buse <buse@ccs-labs.org>
 //
 // Documentation for these modules is at http://veins.car2x.org/
 //
@@ -17,48 +17,28 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
+#ifndef DUMMYANALOGUEMODEL_H_
+#define DUMMYANALOGUEMODEL_H_
 
-#ifndef SPECTRUM_H_
-#define SPECTRUM_H_
-
-#include <stdint.h>
-#include <iostream>
-#include <algorithm>
-#include <vector>
-#include <iterator>
-#include <memory>
-#include <fstream>
-#include <assert.h>
-#include <map>
+#include "veins/base/phyLayer/AnalogueModel.h"
 
 namespace Veins {
 
-typedef std::vector<double> Freqs;
+class DummyAnalogueModel : public AnalogueModel {
+protected:
+    const double factor;
 
-class Spectrum {
 public:
-    Spectrum() = default;
-    Spectrum(Freqs freqs);
+    DummyAnalogueModel(double factor)
+        : factor(factor)
+    {
+    }
 
-    const double& operator[](size_t index) const;
-
-    size_t getNumFreqs() const;
-
-    size_t indexOf(double freq) const;
-    size_t indexNearLow(double freq) const;
-    size_t indexNearUp(double freq) const;
-
-    double freqAt(size_t freqIndex) const;
-
-    void print() const;
-    void toFile(std::string path) const;
-
-    friend bool operator==(const Spectrum& lhs, const Spectrum& rhs);
-
-private:
-    Freqs frequencies;
+    void filterSignal(Signal* signal, const Coord& sendersPos, const Coord& receiverPos) override
+    {
+        signal->addUniformAttenuation(factor);
+    }
 };
-
 } // namespace Veins
 
-#endif /* SPECTRUM_H_ */
+#endif /*DUMMYANALOGUEMODEL_H_*/

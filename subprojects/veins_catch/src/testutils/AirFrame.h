@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2010-2018 Christoph Sommer <sommer@ccs-labs.org>
+// Copyright (C) 2018 Christoph Sommer <sommer@ccs-labs.org>
 //
 // Documentation for these modules is at http://veins.car2x.org/
 //
@@ -17,19 +17,22 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
+#ifndef TESTUTILS_AIRFRAME_H
+#define TESTUTILS_AIRFRAME_H
 
-package org.car2x.veins.modules.obstacle;
+#include <omnetpp.h>
+#include "veins/base/messages/AirFrame_m.h"
 
-//
-// ObstacleControl models obstacles that block radio transmissions
-//
-simple ObstacleControl
+Veins::AirFrame createAirframe(double centerFreq, double bandwidth, omnetpp::simtime_t start, omnetpp::simtime_t length, double power)
 {
-    parameters:
-        @class(Veins::ObstacleControl);
-        bool debug = default(false);  // emit debug messages?
-        xml obstacles = default(xml("<obstacles/>")); // list of obstacle types and obstacles to load
-        @display("i=misc/town");
-        @labels(node);
+    Veins::Signal s(Veins::Spectrum({centerFreq - 5e6, centerFreq, centerFreq + 5e6}), start, length);
+    s(centerFreq - 5e6) = power;
+    s(centerFreq) = power;
+    s(centerFreq + 5e6) = power;
+
+    Veins::AirFrame frame;
+    frame.setSignal(s);
+    return frame;
 }
 
+#endif

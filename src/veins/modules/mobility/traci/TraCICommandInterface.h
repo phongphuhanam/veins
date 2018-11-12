@@ -7,6 +7,7 @@
 
 #include "veins/modules/mobility/traci/TraCIColor.h"
 #include "veins/base/utils/Coord.h"
+#include "veins/modules/mobility/traci/TraCICoord.h"
 #include "veins/modules/world/traci/trafficLight/TraCITrafficLightProgram.h"
 
 namespace Veins {
@@ -46,7 +47,33 @@ public:
 
     // General methods that do not deal with a particular object in the simulation
     std::pair<uint32_t, std::string> getVersion();
+    void setApiVersion(uint32_t apiVersion);
     std::pair<double, double> getLonLat(const Coord&);
+
+    uint8_t getTimeType() const
+    {
+        return versionConfig.timeType;
+    }
+    uint8_t getNetBoundaryType() const
+    {
+        return versionConfig.netBoundaryType;
+    }
+    uint8_t getTimeStepCmd() const
+    {
+        return versionConfig.timeStepCmd;
+    }
+
+    std::pair<TraCICoord, TraCICoord> initNetworkBoundaries(int margin);
+
+    /**
+     * Convert Cartesian coordination to road map position
+     * @param coord Cartesian coordination
+     * @return a tuple of <RoadId, Pos, LaneId> where:
+     *     RoadId identifies a road segment (edge)
+     *     Pos describes the position of the node in longitudinal direction (ranging from 0 to the road's length)
+     *     LaneId identifies the driving lane on the edge.
+     */
+    std::tuple<std::string, double, uint8_t> getRoadMapPos(const Coord& coord);
 
     /**
      * Get the distance between two arbitrary positions.
@@ -103,6 +130,7 @@ public:
         bool changeVehicleRoute(const std::list<std::string>& roads);
         double getLength();
         double getWidth();
+        double getHeight();
         double getAccel();
         double getDeccel();
 
@@ -276,6 +304,29 @@ public:
         return Trafficlight(this, trafficLightId);
     }
 
+    // LaneAreaDetector methods
+    std::list<std::string> getLaneAreaDetectorIds();
+    class LaneAreaDetector {
+    public:
+        LaneAreaDetector(TraCICommandInterface* traci, std::string laneAreaDetectorId)
+            : traci(traci)
+            , laneAreaDetectorId(laneAreaDetectorId)
+        {
+            connection = &traci->connection;
+        }
+
+        int getLastStepVehicleNumber();
+
+    protected:
+        TraCICommandInterface* traci;
+        TraCIConnection* connection;
+        std::string laneAreaDetectorId;
+    };
+    LaneAreaDetector laneAreaDetector(std::string laneAreaDetectorId)
+    {
+        return LaneAreaDetector(this, laneAreaDetectorId);
+    }
+
     // Polygon methods
     std::list<std::string> getPolygonIds();
     void addPolygon(std::string polyId, std::string polyType, const TraCIColor& color, bool filled, int32_t layer, const std::list<Coord>& points);
@@ -407,7 +458,16 @@ public:
     }
 
 private:
+    struct VersionConfig {
+        uint8_t timeType;
+        uint8_t netBoundaryType;
+        uint8_t timeStepCmd;
+        bool timeAsDouble;
+    };
+
     TraCIConnection& connection;
+    static const std::map<uint32_t, VersionConfig> versionConfigs;
+    VersionConfig versionConfig;
 
     std::string genericGetString(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);
     Coord genericGetCoord(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId);

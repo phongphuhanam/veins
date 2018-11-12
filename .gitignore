@@ -15,8 +15,10 @@ doc/neddoc
 tests/**/results
 tests/**/.tkenvrc
 tests/**/.qtenvrc
+tests/**/.cmdenv-log
 tests/**/out.tmp
 tests/**/err.tmp
+tests/traci/*.out.xml
 
 examples/**/results
 examples/**/.tkenvrc

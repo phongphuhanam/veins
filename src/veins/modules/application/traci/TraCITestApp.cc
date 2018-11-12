@@ -110,6 +110,15 @@ void TraCITestApp::handlePositionUpdate()
 
     if (testNumber == testCounter++) {
         if (t == 1) {
+            auto o = traci->getRoadMapPos(Coord(100, 100));
+            assertEqual("(TraCICommandInterface::getRoadMapPos)", "25", std::get<0>(o));
+            assertClose("(TraCICommandInterface::getRoadMapPos)", 75.0, std::get<1>(o));
+            assertEqual("(TraCICommandInterface::getRoadMapPos)", 0, std::get<2>(o));
+        }
+    }
+
+    if (testNumber == testCounter++) {
+        if (t == 1) {
             assertClose("(TraCICommandInterface::getDistance) air", 859., floor(traci->getDistance(Coord(25, 7030), Coord(883, 6980), false)));
             assertClose("(TraCICommandInterface::getDistance) driving", 847., floor(traci->getDistance(Coord(25, 7030), Coord(883, 6980), true)));
         }
@@ -406,6 +415,7 @@ void TraCITestApp::handlePositionUpdate()
         if (t == 1) {
             assertClose("(TraCICommandInterface::Vehicle::getLength)", 2.5, traciVehicle->getLength());
             assertClose("(TraCICommandInterface::Vehicle::getWidth)", 1.8, traciVehicle->getWidth());
+            assertClose("(TraCICommandInterface::Vehicle::getHeight)", 1.5, traciVehicle->getHeight());
             assertClose("(TraCICommandInterface::Vehicle::getAccel)", 3.0, traciVehicle->getAccel());
             assertClose("(TraCICommandInterface::Vehicle::getDeccel)", 9.81, traciVehicle->getDeccel());
         }
@@ -702,6 +712,24 @@ void TraCITestApp::handlePositionUpdate()
         }
         if (t == 8) {
             assertEqual("(TraCICommandInterface::Trafficlight::setProgramDefinition)", "rGrGrGrGr", traci->trafficlight("10").getCurrentState());
+        }
+    }
+
+    //
+    // TraCICommandInterface::LaneAreaDetector
+    //
+    if (testNumber == testCounter++) {
+        if (t == 30) {
+            std::list<std::string> o = traci->getLaneAreaDetectorIds();
+            assertEqual("(TraCICommandInterface::getLaneAreaDetectorIds) number is correct", (size_t) 1, o.size());
+            assertEqual("(TraCICommandInterface::getLaneAreaDetectorIds) id is correct", "e2", *o.begin());
+        }
+    }
+
+    if (testNumber == testCounter++) {
+        if (t == 2) {
+            auto o = traci->laneAreaDetector("e2").getLastStepVehicleNumber();
+            assertEqual("(TraCICommandInterface::LaneAreaDetector::getLastStepVehicleNumber) number is correct", 1, o);
         }
     }
 
