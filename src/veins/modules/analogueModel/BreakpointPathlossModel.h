@@ -1,9 +1,9 @@
-#ifndef BREAKPOINTPATHLOSSMODEL_H_
-#define BREAKPOINTPATHLOSSMODEL_H_
+#pragma once
 
 #include <cstdlib>
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/phyLayer/AnalogueModel.h"
 
 using Veins::AirFrame;
@@ -16,7 +16,7 @@ namespace Veins {
  *
  * @ingroup analogueModels
  */
-class MIXIM_API BreakpointPathlossModel : public AnalogueModel {
+class VEINS_API BreakpointPathlossModel : public AnalogueModel {
 protected:
     //    /** @brief Model to use for distances below breakpoint distance */
     //    SimplePathlossModel closeRangeModel;
@@ -34,17 +34,11 @@ protected:
     /** @brief Breakpoint distance squared. */
     double breakpointDistance;
 
-    /** @brief Carrier frequency in Hz */
-    double carrierFrequency;
-
     /** @brief Information needed about the playground */
     const bool useTorus;
 
     /** @brief The size of the playground.*/
     const Coord& playgroundSize;
-
-    /** @brief Whether debug messages should be displayed. */
-    bool debug;
 
     /** logs computed pathlosses. */
     cOutVector pathlosses;
@@ -54,16 +48,15 @@ public:
      * @brief Initializes the analogue model. playgroundSize
      * need to be valid as long as this instance exists.
      */
-    BreakpointPathlossModel(double L01, double L02, double alpha1, double alpha2, double breakpointDistance, double carrierFrequency, bool useTorus, const Coord& playgroundSize, bool debug)
-        : PL01(L01)
+    BreakpointPathlossModel(cComponent* owner, double L01, double L02, double alpha1, double alpha2, double breakpointDistance, bool useTorus, const Coord& playgroundSize)
+        : AnalogueModel(owner)
+        , PL01(L01)
         , PL02(L02)
         , alpha1(alpha1)
         , alpha2(alpha2)
         , breakpointDistance(breakpointDistance)
-        , carrierFrequency(carrierFrequency)
         , useTorus(useTorus)
         , playgroundSize(playgroundSize)
-        , debug(debug)
     {
         PL01_real = pow(10, PL01 / 10);
         PL02_real = pow(10, PL02 / 10);
@@ -74,7 +67,7 @@ public:
      * @brief Filters a specified AirFrame's Signal by adding an attenuation
      * over time to the Signal.
      */
-    virtual void filterSignal(Signal*, const Coord&, const Coord&);
+    void filterSignal(Signal*) override;
 
     virtual bool isActiveAtDestination()
     {
@@ -88,5 +81,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif /*BREAKPOINTPATHLOSSMODEL_H_*/

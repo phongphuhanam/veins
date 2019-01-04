@@ -14,8 +14,6 @@
 #include "veins/modules/mobility/traci/TraCIConnection.h"
 #include "veins/modules/mobility/traci/TraCIConstants.h"
 
-#define MYDEBUG EV_DEBUG
-
 namespace Veins {
 
 struct traci2omnet_functor : public std::unary_function<TraCICoord, Coord> {
@@ -38,8 +36,9 @@ SOCKET socket(void* ptr)
     return *static_cast<SOCKET*>(ptr);
 }
 
-TraCIConnection::TraCIConnection(void* ptr)
-    : socketPtr(ptr)
+TraCIConnection::TraCIConnection(cComponent* owner, void* ptr)
+    : HasLogProxy(owner)
+    , socketPtr(ptr)
 {
     ASSERT(socketPtr);
 }
@@ -52,9 +51,10 @@ TraCIConnection::~TraCIConnection()
     }
 }
 
-TraCIConnection* TraCIConnection::connect(const char* host, int port)
+TraCIConnection* TraCIConnection::connect(cComponent* owner, const char* host, int port)
 {
-    MYDEBUG << "TraCIScenarioManager connecting to TraCI server" << endl;
+    EV_STATICCONTEXT;
+    EV_INFO << "TraCIScenarioManager connecting to TraCI server" << endl;
 
     if (initsocketlibonce() != 0) throw cRuntimeError("Could not init socketlib");
 
@@ -71,7 +71,7 @@ TraCIConnection* TraCIConnection::connect(const char* host, int port)
     }
     else {
         throw cRuntimeError("Invalid TraCI server address: %s", host);
-        return 0;
+        return nullptr;
     }
 
     sockaddr_in address;
@@ -110,7 +110,7 @@ TraCIConnection* TraCIConnection::connect(const char* host, int port)
         ::setsockopt(*socketPtr, IPPROTO_TCP, TCP_NODELAY, (const char*) &x, sizeof(x));
     }
 
-    return new TraCIConnection(socketPtr);
+    return new TraCIConnection(owner, socketPtr);
 }
 
 TraCIBuffer TraCIConnection::query(uint8_t commandId, const TraCIBuffer& buf)
@@ -180,7 +180,7 @@ std::string TraCIConnection::receiveMessage()
     uint32_t bufLength = msgLength - sizeof(msgLength);
     char buf[bufLength];
     {
-        MYDEBUG << "Reading TraCI message of " << bufLength << " bytes" << endl;
+        EV_TRACE << "Reading TraCI message of " << bufLength << " bytes" << endl;
         uint32_t bytesRead = 0;
         while (bytesRead < bufLength) {
             int receivedBytes = ::recv(socket(socketPtr), reinterpret_cast<char*>(&buf) + bytesRead, bufLength - bytesRead, 0);
@@ -223,7 +223,7 @@ void TraCIConnection::sendMessage(std::string buf)
     }
 
     {
-        MYDEBUG << "Writing TraCI message of " << buf.length() << " bytes" << endl;
+        EV_TRACE << "Writing TraCI message of " << buf.length() << " bytes" << endl;
         uint32_t bytesWritten = 0;
         while (bytesWritten < buf.length()) {
             ssize_t sentBytes = ::send(socket(socketPtr), buf.c_str() + bytesWritten, buf.length() - bytesWritten, 0);
@@ -278,16 +278,16 @@ std::list<TraCICoord> TraCIConnection::omnet2traci(const std::list<Coord>& list)
     return coordinateTransformation->omnet2traci(list);
 }
 
-double TraCIConnection::traci2omnetAngle(double angle) const
+Heading TraCIConnection::traci2omnetHeading(double heading) const
 {
     ASSERT(coordinateTransformation.get());
-    return coordinateTransformation->traci2omnetAngle(angle);
+    return coordinateTransformation->traci2omnetHeading(heading);
 }
 
-double TraCIConnection::omnet2traciAngle(double angle) const
+double TraCIConnection::omnet2traciHeading(Heading heading) const
 {
     ASSERT(coordinateTransformation.get());
-    return coordinateTransformation->omnet2traciAngle(angle);
+    return coordinateTransformation->omnet2traciHeading(heading);
 }
 
 } // namespace Veins

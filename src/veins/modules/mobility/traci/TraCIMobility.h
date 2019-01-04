@@ -18,10 +18,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef VEINS_MOBILITY_TRACI_TRACIMOBILITY_H
-#define VEINS_MOBILITY_TRACI_TRACIMOBILITY_H
-
-#define TRACI_SIGNAL_PARKING_CHANGE_NAME "parkingStateChanged"
+#pragma once
 
 #include <string>
 #include <fstream>
@@ -33,6 +30,7 @@
 #include "veins/modules/mobility/traci/TraCIScenarioManager.h"
 #include "veins/modules/mobility/traci/TraCICommandInterface.h"
 #include "veins/modules/mobility/traci/VehicleSignal.h"
+#include "veins/base/utils/Heading.h"
 
 namespace Veins {
 
@@ -70,24 +68,26 @@ public:
         void recordScalars(cSimpleModule& module);
     };
 
+    const static simsignal_t parkingStateChangedSignal;
+
     TraCIMobility()
         : BaseMobility()
         , isPreInitialized(false)
-        , manager(0)
-        , commandInterface(0)
-        , vehicleCommandInterface(0)
+        , manager(nullptr)
+        , commandInterface(nullptr)
+        , vehicleCommandInterface(nullptr)
     {
     }
-    ~TraCIMobility()
+    ~TraCIMobility() override
     {
         delete vehicleCommandInterface;
     }
-    virtual void initialize(int);
-    virtual void finish();
+    void initialize(int) override;
+    void finish() override;
 
-    virtual void handleSelfMsg(cMessage* msg);
-    virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed = -1, double angle = -1);
-    virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, double angle = -1, VehicleSignalSet signals = {VehicleSignal::undefined});
+    void handleSelfMsg(cMessage* msg) override;
+    virtual void preInitialize(std::string external_id, const Coord& position, std::string road_id = "", double speed = -1, Heading heading = Heading::nan);
+    virtual void nextPosition(const Coord& position, std::string road_id = "", double speed = -1, Heading heading = Heading::nan, VehicleSignalSet signals = {VehicleSignal::undefined});
     virtual void changePosition();
     virtual void changeParkingState(bool);
     virtual void setExternalId(std::string external_id)
@@ -99,13 +99,9 @@ public:
         if (external_id == "") throw cRuntimeError("TraCIMobility::getExternalId called with no external_id set yet");
         return external_id;
     }
-    virtual double getAntennaPositionOffset() const
+    virtual double getHostPositionOffset() const
     {
-        return antennaPositionOffset;
-    }
-    virtual Coord getPositionAt(const simtime_t& t) const
-    {
-        return move.getPositionAt(t);
+        return hostPositionOffset;
     }
     virtual bool getParkingState() const
     {
@@ -127,12 +123,12 @@ public:
         return signals;
     }
     /**
-     * returns angle in rads, 0 being east, with -M_PI <= angle < M_PI.
+     * returns heading.
      */
-    virtual double getAngleRad() const
+    virtual Heading getHeading() const
     {
-        if (angle == M_PI) throw cRuntimeError("TraCIMobility::getAngleRad called with no angle set yet");
-        return angle;
+        if (heading.isNan()) throw cRuntimeError("TraCIMobility::getHeading called with no heading set yet");
+        return heading;
     }
     virtual TraCIScenarioManager* getManager() const
     {
@@ -150,8 +146,15 @@ public:
         return vehicleCommandInterface;
     }
 
+    /**
+     * Returns the speed of the host (likely 0 if setHostSpeed==false)
+     */
+    Coord getHostSpeed() const
+    {
+        return BaseMobility::getCurrentSpeed();
+    }
+
 protected:
-    bool debug; /**< whether to emit debug messages */
     int accidentCount; /**< number of accidents */
 
     cOutVector currentPosXVec; /**< vector plotting posx */
@@ -165,13 +168,14 @@ protected:
     bool isPreInitialized; /**< true if preInitialize() has been called immediately before initialize() */
 
     std::string external_id; /**< updated by setExternalId() */
-    double antennaPositionOffset; /**< front offset for the antenna on this car */
+    double hostPositionOffset; /**< front offset for the antenna on this car */
+    bool setHostSpeed; /**< whether to update the speed of the host (along with its position)  */
 
     simtime_t lastUpdate; /**< updated by nextPosition() */
     Coord roadPosition; /**< position of front bumper, updated by nextPosition() */
     std::string road_id; /**< updated by nextPosition() */
     double speed; /**< updated by nextPosition() */
-    double angle; /**< updated by nextPosition() */
+    Heading heading; /**< updated by nextPosition() */
     VehicleSignalSet signals; /**<updated by nextPosition() */
 
     cMessage* startAccidentMsg;
@@ -181,11 +185,9 @@ protected:
     mutable TraCICommandInterface::Vehicle* vehicleCommandInterface;
     double last_speed;
 
-    const static simsignalwrap_t parkingStateChangedSignal;
-
     bool isParking;
 
-    virtual void fixIfHostGetsOutside(); /**< called after each read to check for (and handle) invalid positions */
+    void fixIfHostGetsOutside() override; /**< called after each read to check for (and handle) invalid positions */
 
     /**
      * Returns the amount of CO2 emissions in grams/second, calculated for an average Car
@@ -196,9 +198,17 @@ protected:
     double calculateCO2emission(double v, double a) const;
 
     /**
-     * Calculates where the antenna of this car is, given its front bumper position
+     * Calculates where the OMNeT++ module position of this car should be, given its front bumper position
      */
-    Coord calculateAntennaPosition(const Coord& vehiclePos) const;
+    Coord calculateHostPosition(const Coord& vehiclePos) const;
+
+    /**
+     * Calling this method on pointers of type TraCIMobility is deprecated in favor of calling either getHostSpeed or getSpeed.
+     */
+    Coord getCurrentSpeed() const override
+    {
+        return BaseMobility::getCurrentSpeed();
+    }
 };
 
 class TraCIMobilityAccess {
@@ -212,5 +222,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif

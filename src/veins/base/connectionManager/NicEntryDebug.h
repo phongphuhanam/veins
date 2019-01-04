@@ -19,8 +19,7 @@
  *              ConnectionManager module
  **************************************************************************/
 
-#ifndef NICENTRYDEBUG_H
-#define NICENTRYDEBUG_H
+#pragma once
 
 #include "veins/base/connectionManager/NicEntry.h"
 
@@ -54,7 +53,7 @@ protected:
      */
     bool checkFreeGates;
 
-    typedef std::vector<cGate*> GateStack;
+    using GateStack = std::vector<cGate*>;
     /** @brief In Gates that were once used but are not connected now */
     GateStack freeInGates;
 
@@ -106,8 +105,8 @@ public:
     /**
      * @brief Constructor, initializes all members
      */
-    NicEntryDebug(bool debug)
-        : NicEntry(debug)
+    NicEntryDebug(cComponent* owner)
+        : NicEntry(owner)
         , inCnt(0)
         , outCnt(0)
         , checkFreeGates(true){};
@@ -115,7 +114,7 @@ public:
     /**
      * @brief Removes all dynamically created out-/ingates.
      */
-    virtual ~NicEntryDebug()
+    ~NicEntryDebug() override
     {
     }
 
@@ -130,7 +129,7 @@ public:
      * gate at this nic, connects the two and updates the freeInGate,
      * freeOutGate and outConns data sets.
      **/
-    virtual void connectTo(NicEntry* other);
+    void connectTo(NicEntry* other) override;
 
     /**
      * @brief Disconnect two nics
@@ -139,9 +138,7 @@ public:
      *
      * @param other reference to remote nic (other NicEntry)
      **/
-    virtual void disconnectFrom(NicEntry* other);
+    void disconnectFrom(NicEntry* other) override;
 };
 
 } // namespace Veins
-
-#endif

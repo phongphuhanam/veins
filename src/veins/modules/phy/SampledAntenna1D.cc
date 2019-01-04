@@ -19,8 +19,6 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#include <assert.h>
-
 #include "veins/modules/phy/SampledAntenna1D.h"
 #include "veins/base/utils/FWMath.h"
 
@@ -32,7 +30,7 @@ SampledAntenna1D::SampledAntenna1D(std::vector<double>& values, std::string offs
     distance = (2 * M_PI) / values.size();
 
     // instantiate a random number generator for sample offsets if one is specified
-    cRandom* offsetGen = 0;
+    cRandom* offsetGen = nullptr;
     if (offsetType == "uniform") {
         if (!math::almost_equal(offsetParams[0], -offsetParams[1])) {
             throw cRuntimeError("SampledAntenna1D::SampledAntenna1D(): The mean of the random distribution for the samples' offsets has to be 0.");
@@ -53,7 +51,7 @@ SampledAntenna1D::SampledAntenna1D(std::vector<double>& values, std::string offs
     }
 
     // determine random rotation of the antenna if specified
-    cRandom* rotationGen = 0;
+    cRandom* rotationGen = nullptr;
     if (rotationType == "uniform") {
         rotationGen = new cUniform(rng, rotationParams[0], rotationParams[1]);
     }
@@ -63,8 +61,8 @@ SampledAntenna1D::SampledAntenna1D(std::vector<double>& values, std::string offs
     else if (rotationType == "triang") {
         rotationGen = new cTriang(rng, rotationParams[0], rotationParams[1], rotationParams[2]);
     }
-    rotation = (rotationGen == 0) ? 0 : rotationGen->draw();
-    if (rotationGen != 0) delete rotationGen;
+    rotation = (rotationGen == nullptr) ? 0 : rotationGen->draw();
+    if (rotationGen != nullptr) delete rotationGen;
 
     // transform to rad
     rotation *= (M_PI / 180);
@@ -72,14 +70,14 @@ SampledAntenna1D::SampledAntenna1D(std::vector<double>& values, std::string offs
     // copy values and apply offset
     for (unsigned int i = 0; i < values.size(); i++) {
         double offset = 0;
-        if (offsetGen != 0) {
+        if (offsetGen != nullptr) {
             offset = offsetGen->draw();
             // transform to rad
             offset *= (M_PI / 180);
         }
         antennaGains[i] = values[i] + offset;
     }
-    if (offsetGen != 0) delete offsetGen;
+    if (offsetGen != nullptr) delete offsetGen;
 
     // assign the value of 0 degrees to 360 degrees as well to assure correct interpolation (size allocated already before)
     antennaGains[values.size()] = antennaGains[0];
@@ -108,7 +106,7 @@ double SampledAntenna1D::getGain(Coord ownPos, Coord ownOrient, Coord otherPos)
     double offset = (angle - (baseElement * distance)) / distance;
 
     // make sure to not address an element out of antennaGains (baseElement == lastElement implies that offset is zero)
-    assert((baseElement < antennaGains.size()) && (baseElement != antennaGains.size() - 1 || offset == 0));
+    ASSERT((baseElement < antennaGains.size()) && (baseElement != antennaGains.size() - 1 || offset == 0));
 
     double gainValue = antennaGains[baseElement];
     if (offset > 0) {

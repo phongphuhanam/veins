@@ -19,19 +19,19 @@
  *              ConnectionManager module
  **************************************************************************/
 
-#ifndef NICENTRY_H
-#define NICENTRY_H
+#pragma once
 
-#include <omnetpp.h>
 #include <map>
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/utils/Coord.h"
+#include "veins/base/utils/Heading.h"
+#include "veins/modules/utility/HasLogProxy.h"
 
 namespace Veins {
 
 class ChannelAccess;
-using Veins::ChannelAccess;
 
 /**
  * @brief NicEntry is used by ConnectionManager to store the necessary
@@ -41,7 +41,7 @@ using Veins::ChannelAccess;
  * @author Daniel Willkomm
  * @sa ConnectionManager
  */
-class MIXIM_API NicEntry : public cObject {
+class VEINS_API NicEntry : public HasLogProxy {
 protected:
     class NicEntryComparator {
     public:
@@ -67,13 +67,13 @@ public:
     /** @brief Geographic location of the nic*/
     Coord pos;
 
+    /** @brief Heading (angle) of the nic*/
+    Heading heading;
+
     /** @brief Points to this nics ChannelAccess module */
     ChannelAccess* chAccess;
 
 protected:
-    /** @brief Debug output switch*/
-    bool coreDebug;
-
     /** @brief Outgoing connections of this nic
      *
      * This map stores all connection for this nic to other nics
@@ -87,13 +87,11 @@ public:
     /**
      * @brief Constructor, initializes all members
      */
-    NicEntry(bool debug)
-        : nicId(0)
-        , nicPtr(0)
-        , hostId(0)
-    {
-        coreDebug = debug;
-    };
+    NicEntry(cComponent* owner)
+        : HasLogProxy(owner)
+        , nicId(0)
+        , nicPtr(nullptr)
+        , hostId(0){};
 
     /**
      * @brief Destructor -- needs to be there...
@@ -135,5 +133,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif

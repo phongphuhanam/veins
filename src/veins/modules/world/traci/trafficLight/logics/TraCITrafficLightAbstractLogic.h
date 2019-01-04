@@ -18,10 +18,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef TRACITRAFFICLIGHTABSTRACTLOGIC_H_
-#define TRACITRAFFICLIGHTABSTRACTLOGIC_H_
+#pragma once
 
-#include <omnetpp.h>
+#include "veins/veins.h"
+
 #include "veins/modules/messages/TraCITrafficLightMessage_m.h"
 
 namespace Veins {
@@ -37,13 +37,13 @@ using omnetpp::cSimpleModule;
 class TraCITrafficLightAbstractLogic : public cSimpleModule {
 public:
     TraCITrafficLightAbstractLogic();
-    virtual ~TraCITrafficLightAbstractLogic();
+    ~TraCITrafficLightAbstractLogic() override;
 
 protected:
     cMessage* switchTimer;
 
-    virtual void initialize();
-    virtual void handleMessage(cMessage* msg);
+    void initialize() override;
+    void handleMessage(cMessage* msg) override;
     virtual void handleSelfMsg(cMessage* msg);
     virtual void handleApplMsg(cMessage* msg) = 0;
     virtual void handleTlIfMsg(TraCITrafficLightMessage* tlMsg) = 0;
@@ -51,5 +51,3 @@ protected:
 };
 
 } // namespace Veins
-
-#endif /* TRACITRAFFICLIGHTABSTRACTLOGIC_H_ */

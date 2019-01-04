@@ -25,13 +25,11 @@
 
 #include "veins/base/modules/BaseLayer.h"
 
-#include <assert.h>
-
 using namespace Veins;
 
-const simsignalwrap_t BaseLayer::catPassedMsgSignal = simsignalwrap_t(MIXIM_SIGNAL_PASSEDMSG_NAME);
-const simsignalwrap_t BaseLayer::catPacketSignal = simsignalwrap_t(MIXIM_SIGNAL_PACKET_NAME);
-const simsignalwrap_t BaseLayer::catDroppedPacketSignal = simsignalwrap_t(MIXIM_SIGNAL_DROPPEDPACKET_NAME);
+const simsignal_t BaseLayer::catPassedMsgSignal = registerSignal("org.car2x.veins.base.utils.passedmsg");
+const simsignal_t BaseLayer::catPacketSignal = registerSignal("org.car2x.veins.modules.utility.packet");
+const simsignal_t BaseLayer::catDroppedPacketSignal = registerSignal("org.car2x.veins.modules.utility.droppedpacket");
 
 /**
  * First we have to initialize the module from which we derived ours,
@@ -43,10 +41,10 @@ void BaseLayer::initialize(int stage)
 {
     BatteryAccess::initialize(stage);
     if (stage == 0) {
-        passedMsg = NULL;
+        passedMsg = nullptr;
         if (hasPar("stats") && par("stats").boolValue()) {
             passedMsg = new PassedMessage();
-            if (passedMsg != NULL) {
+            if (passedMsg != nullptr) {
                 passedMsg->fromModule = getId();
             }
         }
@@ -148,7 +146,7 @@ void BaseLayer::sendControlDown(cMessage* msg)
 
 void BaseLayer::recordPacket(PassedMessage::direction_t dir, PassedMessage::gates_t gate, const cMessage* msg)
 {
-    if (passedMsg == NULL) return;
+    if (passedMsg == nullptr) return;
     passedMsg->direction = dir;
     passedMsg->gateType = gate;
     passedMsg->kind = msg->getKind();
@@ -162,7 +160,7 @@ void BaseLayer::finish()
 
 BaseLayer::~BaseLayer()
 {
-    if (passedMsg != NULL) {
+    if (passedMsg != nullptr) {
         delete passedMsg;
     }
 }

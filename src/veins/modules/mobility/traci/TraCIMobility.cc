@@ -30,7 +30,7 @@ using Veins::TraCIMobility;
 
 Define_Module(Veins::TraCIMobility);
 
-const simsignalwrap_t TraCIMobility::parkingStateChangedSignal = simsignalwrap_t(TRACI_SIGNAL_PARKING_CHANGE_NAME);
+const simsignal_t TraCIMobility::parkingStateChangedSignal = registerSignal("org.car2x.veins.modules.mobility.parkingStateChanged");
 
 namespace {
 const double MY_INFINITY = (std::numeric_limits<double>::has_infinity ? std::numeric_limits<double>::infinity() : std::numeric_limits<double>::max());
@@ -73,8 +73,8 @@ void TraCIMobility::initialize(int stage)
     if (stage == 0) {
         BaseMobility::initialize(stage);
 
-        debug = par("debug");
-        antennaPositionOffset = par("antennaPositionOffset");
+        hostPositionOffset = par("hostPositionOffset");
+        setHostSpeed = par("setHostSpeed");
         accidentCount = par("accidentCount");
 
         currentPosXVec.setName("posx");
@@ -89,22 +89,24 @@ void TraCIMobility::initialize(int stage)
         ASSERT(isPreInitialized);
         isPreInitialized = false;
 
-        Coord nextPos = calculateAntennaPosition(roadPosition);
-        nextPos.z = move.getCurrentPosition().z;
+        Coord nextPos = calculateHostPosition(roadPosition);
+        nextPos.z = move.getStartPosition().z;
 
         move.setStart(nextPos);
-        move.setDirectionByVector(Coord(cos(angle), -sin(angle)));
-        move.setSpeed(speed);
+        move.setDirectionByVector(heading.toCoord());
+        if (this->setHostSpeed) {
+            move.setSpeed(speed);
+        }
 
         WATCH(road_id);
         WATCH(speed);
-        WATCH(angle);
+        WATCH(heading);
 
         isParking = false;
 
-        startAccidentMsg = 0;
-        stopAccidentMsg = 0;
-        manager = 0;
+        startAccidentMsg = nullptr;
+        stopAccidentMsg = nullptr;
+        manager = nullptr;
         last_speed = -1;
 
         if (accidentCount > 0) {
@@ -151,34 +153,37 @@ void TraCIMobility::handleSelfMsg(cMessage* msg)
     }
 }
 
-void TraCIMobility::preInitialize(std::string external_id, const Coord& position, std::string road_id, double speed, double angle)
+void TraCIMobility::preInitialize(std::string external_id, const Coord& position, std::string road_id, double speed, Heading heading)
 {
     this->external_id = external_id;
     this->lastUpdate = 0;
     this->roadPosition = position;
     this->road_id = road_id;
     this->speed = speed;
-    this->angle = angle;
-    this->antennaPositionOffset = par("antennaPositionOffset");
+    this->heading = heading;
+    this->hostPositionOffset = par("hostPositionOffset");
+    this->setHostSpeed = par("setHostSpeed");
 
-    Coord nextPos = calculateAntennaPosition(roadPosition);
-    nextPos.z = move.getCurrentPosition().z;
+    Coord nextPos = calculateHostPosition(roadPosition);
+    nextPos.z = move.getStartPosition().z;
 
     move.setStart(nextPos);
-    move.setDirectionByVector(Coord(cos(angle), -sin(angle)));
-    move.setSpeed(speed);
+    move.setDirectionByVector(heading.toCoord());
+    if (this->setHostSpeed) {
+        move.setSpeed(speed);
+    }
 
     isPreInitialized = true;
 }
 
-void TraCIMobility::nextPosition(const Coord& position, std::string road_id, double speed, double angle, VehicleSignalSet signals)
+void TraCIMobility::nextPosition(const Coord& position, std::string road_id, double speed, Heading heading, VehicleSignalSet signals)
 {
-    if (debug) EV << "nextPosition " << position.x << " " << position.y << " " << road_id << " " << speed << " " << angle << std::endl;
+    EV_DEBUG << "nextPosition " << position.x << " " << position.y << " " << road_id << " " << speed << " " << heading << std::endl;
     isPreInitialized = false;
     this->roadPosition = position;
     this->road_id = road_id;
     this->speed = speed;
-    this->angle = angle;
+    this->heading = heading;
     this->signals = signals;
 
     changePosition();
@@ -193,8 +198,8 @@ void TraCIMobility::changePosition()
     currentPosXVec.record(move.getStartPos().x);
     currentPosYVec.record(move.getStartPos().y);
 
-    Coord nextPos = calculateAntennaPosition(roadPosition);
-    nextPos.z = move.getCurrentPosition().z;
+    Coord nextPos = calculateHostPosition(roadPosition);
+    nextPos.z = move.getStartPosition().z;
 
     // keep statistics (relative to last step)
     if (statistics.startTime != simTime()) {
@@ -232,9 +237,11 @@ void TraCIMobility::changePosition()
         hostMod->getDisplayString().setTagArg("veins", 0, ". ");
     }
 
-    move.setStart(Coord(nextPos.x, nextPos.y, move.getCurrentPosition().z)); // keep z position
-    move.setDirectionByVector(Coord(cos(angle), -sin(angle)));
-    move.setSpeed(speed);
+    move.setStart(Coord(nextPos.x, nextPos.y, move.getStartPosition().z)); // keep z position
+    move.setDirectionByVector(heading.toCoord());
+    if (this->setHostSpeed) {
+        move.setSpeed(speed);
+    }
     fixIfHostGetsOutside();
     updatePosition();
 }
@@ -295,15 +302,15 @@ double TraCIMobility::calculateCO2emission(double v, double a) const
     return alpha + beta * v * 3.6 + delta * v * v * v * (3.6 * 3.6 * 3.6) + zeta * a * v;
 }
 
-Coord TraCIMobility::calculateAntennaPosition(const Coord& vehiclePos) const
+Coord TraCIMobility::calculateHostPosition(const Coord& vehiclePos) const
 {
     Coord corPos;
-    if (antennaPositionOffset >= 0.001) {
+    if (hostPositionOffset >= 0.001) {
         // calculate antenna position of vehicle according to antenna offset
-        corPos = Coord(vehiclePos.x - antennaPositionOffset * cos(angle), vehiclePos.y + antennaPositionOffset * sin(angle), vehiclePos.z);
+        corPos = vehiclePos - (heading.toCoord() * hostPositionOffset);
     }
     else {
-        corPos = Coord(vehiclePos.x, vehiclePos.y, vehiclePos.z);
+        corPos = vehiclePos;
     }
     return corPos;
 }

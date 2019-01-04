@@ -1,9 +1,7 @@
-#ifndef PER_MODEL_H
-#define PER_MODEL_H
+#pragma once
 
-#include <cassert>
+#include "veins/veins.h"
 
-#include "veins/base/utils/MiXiMDefs.h"
 #include "veins/base/phyLayer/AnalogueModel.h"
 
 using Veins::AirFrame;
@@ -19,21 +17,20 @@ namespace Veins {
  *
  * @author Jérôme Rousselot <jerome.rousselot@csem.ch>
  */
-class MIXIM_API PERModel : public AnalogueModel {
+class VEINS_API PERModel : public AnalogueModel {
 protected:
     double packetErrorRate;
 
 public:
     /** @brief The PERModel constructor takes as argument the packet error rate to apply (must be between 0 and 1). */
-    PERModel(double per)
-        : packetErrorRate(per)
+    PERModel(cComponent* owner, double per)
+        : AnalogueModel(owner)
+        , packetErrorRate(per)
     {
-        assert(per <= 1 && per >= 0);
+        ASSERT(per <= 1 && per >= 0);
     }
 
-    virtual void filterSignal(Signal*, const Coord&, const Coord&);
+    void filterSignal(Signal*) override;
 };
 
 } // namespace Veins
-
-#endif

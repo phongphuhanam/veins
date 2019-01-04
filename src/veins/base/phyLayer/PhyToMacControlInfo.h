@@ -1,9 +1,7 @@
-#ifndef PHYTOMACCONTROLINFO_H_
-#define PHYTOMACCONTROLINFO_H_
+#pragma once
 
-#include <omnetpp.h>
+#include "veins/veins.h"
 
-#include "veins/base/utils/MiXiMDefs.h"
 #include "veins/base/phyLayer/Decider.h"
 
 namespace Veins {
@@ -16,7 +14,7 @@ namespace Veins {
  * @ingroup phyLayer
  * @ingroup macLayer
  */
-class MIXIM_API PhyToMacControlInfo : public cObject {
+class VEINS_API PhyToMacControlInfo : public cObject {
 protected:
     /** The result of the decider evaluation.*/
     DeciderResult* result;
@@ -35,7 +33,7 @@ public:
     /**
      * @brief Clean up the DeciderResult.
      */
-    virtual ~PhyToMacControlInfo()
+    ~PhyToMacControlInfo() override
     {
         if (result) delete result;
     }
@@ -83,10 +81,8 @@ public:
         PhyToMacControlInfo* const cCtrlInfo = dynamic_cast<PhyToMacControlInfo* const>(pCtrlInfo);
 
         if (cCtrlInfo) return cCtrlInfo->getDeciderResult();
-        return NULL;
+        return nullptr;
     }
 };
 
 } // namespace Veins
-
-#endif /*PHYTOMACCONTROLINFO_H_*/

@@ -18,13 +18,12 @@
  * part of:     framework implementation developed by tkn
  **************************************************************************/
 
-#ifndef BASE_MODULE_H
-#define BASE_MODULE_H
+#pragma once
 
 #include <sstream>
-#include <omnetpp.h>
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/utils/HostState.h"
 
 namespace Veins {
@@ -61,18 +60,15 @@ namespace Veins {
  * @author Steffen Sroka
  * @author Andreas Koepke
  */
-class MIXIM_API BaseModule : public cSimpleModule, public cListener {
+class VEINS_API BaseModule : public cSimpleModule, public cListener {
 protected:
-    /** @brief Debug switch for all other modules*/
-    bool debug;
-
     /** @brief Stores if this module is affected by changes in the
      * hosts state. If not explicitly set this module has to capture
      * changes in the host state.*/
     bool notAffectedByHostState;
 
     /** @brief Stores the category of the HostState*/
-    const static simsignalwrap_t catHostStateSignal;
+    const static simsignal_t catHostStateSignal;
 
 protected:
     /**
@@ -101,12 +97,12 @@ protected:
     /** @brief Function to get the logging name of id*/
     // std::string getLogName(int);
 
-    virtual void finish()
+    void finish() override
     {
         cSimpleModule::finish();
     }
 
-    virtual void finish(cComponent* component, simsignal_t signalID)
+    void finish(cComponent* component, simsignal_t signalID) override
     {
         cListener::finish(component, signalID);
     }
@@ -116,7 +112,7 @@ public:
     BaseModule(unsigned stacksize);
 
     /** @brief Basic initialization for all modules */
-    virtual void initialize(int);
+    void initialize(int) override;
 
     /**
      * @brief Divide initialization into two stages
@@ -130,7 +126,7 @@ public:
      * assure that the other module had at least once the chance to initialize
      * itself in stage 0.
      */
-    virtual int numInitStages() const
+    int numInitStages() const override
     {
         return 2;
     }
@@ -159,13 +155,11 @@ public:
      * some debug notifications
      */
     using cListener::receiveSignal;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
+    void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj)
     {
-        receiveSignal(source, signalID, obj, 0);
+        receiveSignal(source, signalID, obj, nullptr);
     }
 };
 
 } // namespace Veins
-
-#endif

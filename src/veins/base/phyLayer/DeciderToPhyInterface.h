@@ -4,14 +4,12 @@
  *
  */
 
-#ifndef DECIDER_TO_PHY_INTERFACE_H_
-#define DECIDER_TO_PHY_INTERFACE_H_
+#pragma once
 
 #include <vector>
 #include <list>
-#include <omnetpp.h>
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
 
 namespace Veins {
 
@@ -37,14 +35,14 @@ class DeciderResult;
  *
  * @ingroup decider
  */
-class MIXIM_API DeciderToPhyInterface {
+class VEINS_API DeciderToPhyInterface {
 public:
     /**
      * @brief Type for container of AirFrames.
      *
      * Used as out-value in "getChannelInfo" method.
      */
-    typedef std::list<AirFrame*> AirFrameVector;
+    using AirFrameVector = std::list<AirFrame*>;
 
     virtual ~DeciderToPhyInterface()
     {
@@ -57,10 +55,10 @@ public:
     virtual void getChannelInfo(simtime_t_cref from, simtime_t_cref to, AirFrameVector& out) = 0;
 
     /**
-     * @brief Returns a constant which defines the thermal noise in
+     * @brief Returns a constant which defines the noise floor in
      * the passed time frame (in mW).
      */
-    virtual double getThermalNoiseValue() = 0;
+    virtual double getNoiseFloorValue() = 0;
 
     /**
      * @brief Called by the Decider to send a control message to the MACLayer
@@ -78,39 +76,6 @@ public:
     virtual void sendUp(AirFrame* packet, DeciderResult* result) = 0;
 
     /**
-     * @brief Returns the current simulation time
-     *
-     */
-    virtual simtime_t getSimTime() = 0;
-
-    /**
-     * @brief Tells the PhyLayer to cancel a scheduled message (AirFrame or
-     * ControlMessage).
-     *
-     * Used by the Decider if it doesn't need to handle an AirFrame or
-     * ControlMessage again anymore.
-     */
-    virtual void cancelScheduledMessage(cMessage* msg) = 0;
-
-    /**
-     * @brief Tells the PhyLayer to reschedule a message (AirFrame or
-     * ControlMessage).
-     *
-     * Used by the Decider if it has to handle an AirFrame or an control message
-     * earlier than it has returned to the PhyLayer the last time the Decider
-     * handled that message.
-     */
-    virtual void rescheduleMessage(cMessage* msg, simtime_t_cref t) = 0;
-
-    /**
-     * @brief Enables the Decider to draw Power from the
-     * phy layers power accounts.
-     *
-     * Does nothing if no Battery module in simulation is present.
-     */
-    virtual void drawCurrent(double amount, int activity) = 0;
-
-    /**
      * @brief Returns a pointer to the simulations world-utility-module.
      */
     virtual BaseWorldUtility* getWorldUtility() = 0;
@@ -124,12 +89,10 @@ public:
      *
      * Records a double into the scalar result file.
      */
-    virtual void recordScalar(const char* name, double value, const char* unit = NULL) = 0;
+    virtual void recordScalar(const char* name, double value, const char* unit = nullptr) = 0;
 
     /** @brief Returns the channel currently used by the radio. */
     virtual int getCurrentRadioChannel() = 0;
 };
 
 } // namespace Veins
-
-#endif /*DECIDER_TO_PHY_INTERFACE_H_*/

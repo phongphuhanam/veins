@@ -5,8 +5,7 @@
  *      Author: Alexander Brummer
  */
 
-#ifndef SRC_VEINS_MODULES_PHY_SAMPLEDANTENNA1D_H_
-#define SRC_VEINS_MODULES_PHY_SAMPLEDANTENNA1D_H_
+#pragma once
 
 #include "veins/base/phyLayer/Antenna.h"
 #include <vector>
@@ -70,7 +69,7 @@ public:
      *
      * Deletes the mapping used for storing the antenna samples.
      */
-    virtual ~SampledAntenna1D();
+    ~SampledAntenna1D() override;
 
     /**
      * @brief Calculates this antenna's gain based on the direction the signal is coming from/sent in.
@@ -81,9 +80,9 @@ public:
      * @return Returns the gain this antenna achieves depending on the computed direction.
      * If the angle is within two samples, linear interpolation is applied.
      */
-    double getGain(Coord ownPos, Coord ownOrient, Coord otherPos);
+    double getGain(Coord ownPos, Coord ownOrient, Coord otherPos) override;
 
-    double getLastAngle();
+    double getLastAngle() override;
 
 private:
     /**
@@ -102,5 +101,3 @@ private:
 };
 
 } // namespace Veins
-
-#endif /* SRC_VEINS_MODULES_PHY_SAMPLEDANTENNA1D_H_ */

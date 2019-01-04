@@ -18,12 +18,13 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef OBSTACLE_OBSTACLECONTROL_H
-#define OBSTACLE_OBSTACLECONTROL_H
+#pragma once
 
 #include <list>
+#include <memory>
 
-#include <omnetpp.h>
+#include "veins/veins.h"
+
 #include "veins/base/utils/Coord.h"
 #include "veins/modules/obstacle/Obstacle.h"
 #include "veins/modules/world/annotations/AnnotationManager.h"
@@ -39,14 +40,14 @@ namespace Veins {
  */
 class ObstacleControl : public cSimpleModule {
 public:
-    ~ObstacleControl();
-    void initialize(int stage);
-    int numInitStages() const
+    ~ObstacleControl() override;
+    void initialize(int stage) override;
+    int numInitStages() const override
     {
         return 2;
     }
-    void finish();
-    void handleMessage(cMessage* msg);
+    void finish() override;
+    void handleMessage(cMessage* msg) override;
     void handleSelfMsg(cMessage* msg);
 
     void addFromXml(cXMLElement* xml);
@@ -91,15 +92,15 @@ protected:
         GRIDCELL_SIZE = 1024
     };
 
-    typedef std::list<Obstacle*> ObstacleGridCell;
-    typedef std::vector<ObstacleGridCell> ObstacleGridRow;
-    typedef std::vector<ObstacleGridRow> Obstacles;
+    using ObstacleGridCell = std::list<Obstacle*>;
+    using ObstacleGridRow = std::vector<ObstacleGridCell>;
+    using Obstacles = std::vector<ObstacleGridRow>;
     typedef std::map<CacheKey, double> CacheEntries;
 
-    bool debug; /**< whether to emit debug messages */
     cXMLElement* obstaclesXml; /**< obstacles to add at startup */
 
     Obstacles obstacles;
+    std::vector<std::unique_ptr<Obstacle>> obstacleOwner;
     AnnotationManager* annotations;
     AnnotationManager::Group* annotationGroup;
     std::map<std::string, double> perCut;
@@ -120,5 +121,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif

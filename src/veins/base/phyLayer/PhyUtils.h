@@ -1,11 +1,10 @@
-#ifndef PHYUTILS_H_
-#define PHYUTILS_H_
+#pragma once
 
-#include <cassert>
 #include <list>
-#include <omnetpp.h>
+#include <memory>
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/phyLayer/AnalogueModel.h"
 
 using Veins::AirFrame;
@@ -20,7 +19,7 @@ namespace Veins {
  *
  * @ingroup phyLayer
  */
-class MIXIM_API Radio {
+class VEINS_API Radio {
 public:
     /**
      * @brief The state of the radio of the nic.
@@ -80,9 +79,9 @@ public:
      * correct number of radio states. Sub classing Radios should also
      * define a factory method like this instead of an public constructor.
      */
-    static Radio* createNewRadio(bool recordStats = false, int initialState = RX, int currentChannel = 0, int nbChannels = 1)
+    static std::unique_ptr<Radio> createNewRadio(bool recordStats = false, int initialState = RX, int currentChannel = 0, int nbChannels = 1)
     {
-        return new Radio(NUM_RADIO_STATES, recordStats, initialState, currentChannel, nbChannels);
+        return std::unique_ptr<Radio>(new Radio(NUM_RADIO_STATES, recordStats, initialState, currentChannel, nbChannels));
     }
 
     /**
@@ -135,8 +134,8 @@ public:
      */
     void setCurrentChannel(int newChannel)
     {
-        assert(newChannel > -1);
-        assert(newChannel < nbChannels);
+        ASSERT(newChannel > -1);
+        ASSERT(newChannel < nbChannels);
         currentChannel = newChannel;
         radioChannels.record(currentChannel);
     }
@@ -171,5 +170,3 @@ protected:
 }; // end class Radio
 
 } // namespace Veins
-
-#endif /*PHYUTILS_H_*/

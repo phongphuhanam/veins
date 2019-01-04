@@ -4,17 +4,14 @@
  *
  */
 
-#ifndef DECIDER_H_
-#define DECIDER_H_
+#pragma once
 
-#include <omnetpp.h>
+#include "veins/veins.h"
 
-#include "veins/base/utils/MiXiMDefs.h"
 #include "veins/base/phyLayer/DeciderToPhyInterface.h"
+#include "veins/modules/utility/HasLogProxy.h"
 
 namespace Veins {
-
-using Veins::AirFrame;
 
 /**
  * @brief A class to represent the result of a processed packet (that is not
@@ -28,7 +25,7 @@ using Veins::AirFrame;
  *
  * @ingroup decider
  */
-class MIXIM_API DeciderResult {
+class VEINS_API DeciderResult {
 protected:
     /** Stores if the AirFrame for this result was received correct.*/
     bool isCorrect;
@@ -66,7 +63,7 @@ public:
  *
  * @ingroup decider
  */
-class MIXIM_API Decider {
+class VEINS_API Decider : public HasLogProxy {
 protected:
     /** @brief A pointer to the physical layer of this Decider. */
     DeciderToPhyInterface* phy;
@@ -75,13 +72,13 @@ protected:
     const simtime_t notAgain;
 
     /** @brief Defines what an AirFrameVector shall be here */
-    typedef DeciderToPhyInterface::AirFrameVector AirFrameVector;
+    using AirFrameVector = DeciderToPhyInterface::AirFrameVector;
 
 public:
     /**
      * @brief Initializes the Decider with a pointer to its PhyLayer
      */
-    Decider(DeciderToPhyInterface* phy);
+    Decider(cComponent* owner, DeciderToPhyInterface* phy);
 
     virtual ~Decider()
     {
@@ -130,5 +127,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif /*DECIDER_H_*/

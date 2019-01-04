@@ -17,13 +17,11 @@
  * part of:     framework implementation developed by tkn
  **************************************************************************/
 
-#ifndef MOVE_H
-#define MOVE_H
+#pragma once
 
 #include <string>
-#include <cassert>
 
-#include <omnetpp.h>
+#include "veins/veins.h"
 
 #include "veins/base/utils/Coord.h"
 
@@ -37,7 +35,7 @@ namespace Veins {
  *
  * @author Andreas Koepke, Michael Swigulski
  **/
-class MIXIM_API Move : public cObject {
+class VEINS_API Move : public cObject {
 protected:
     /** @brief Start position of the host (in meters)**/
     Coord startPos;
@@ -149,7 +147,7 @@ public:
      */
     void setOrientationByVector(const Coord& orientation)
     {
-        assert(orientation.x != 0 || orientation.y != 0);
+        ASSERT(orientation.x != 0 || orientation.y != 0);
         this->orientation = orientation;
     }
 
@@ -159,7 +157,7 @@ public:
      */
     void setDirectionByVector(const Coord& direction)
     {
-        assert(math::almost_equal(direction.squareLength(), 1.0) || math::almost_equal(direction.squareLength(), 0.0));
+        ASSERT(math::almost_equal(direction.squareLength(), 1.0) || math::almost_equal(direction.squareLength(), 0.0));
         this->direction = direction;
 
         // only if one of the x or y components is nonzero, also set orientation to
@@ -180,7 +178,7 @@ public:
     {
         direction = target - startPos;
 
-        assert(!math::almost_equal(direction.length(), 0.0));
+        ASSERT(!math::almost_equal(direction.length(), 0.0));
         direction /= direction.length();
 
         // only if one of the x or y components is nonzero, also set orientation to
@@ -208,7 +206,7 @@ public:
         // otherwise: actualPos = startPos + ( direction * v * t )
         return startPos + (direction * speed * SIMTIME_DBL(actualTime - startTime));
     }
-    virtual const Coord& getCurrentPosition() const
+    virtual const Coord& getStartPosition() const
     {
         if (lastPos.z != DBL_MAX) return lastPos;
         return startPos;
@@ -218,7 +216,7 @@ public:
     /**
      * @brief Returns information about the current state.
      */
-    std::string info() const
+    std::string info() const override
     {
         std::ostringstream ost;
         ost << " HostMove "
@@ -228,5 +226,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif

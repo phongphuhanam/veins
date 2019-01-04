@@ -18,22 +18,18 @@
  * description: basic MAC layer class
  *              subclass to create your own MAC layer
  **************************************************************************/
-#ifndef BASE_MAC_LAYER_H
-#define BASE_MAC_LAYER_H
+#pragma once
 
-#include <omnetpp.h>
+#include "veins/veins.h"
 
-#include "veins/base/utils/MiXiMDefs.h"
 #include "veins/base/modules/BaseLayer.h"
 #include "veins/base/utils/SimpleAddress.h"
-#include "veins/base/toolbox/Spectrum.h"
 
 namespace Veins {
 
 class BaseConnectionManager;
 class MacPkt;
 class MacToPhyInterface;
-class Signal;
 
 /**
  * @brief A very simple MAC module template which provides de- and
@@ -44,7 +40,7 @@ class Signal;
  * @ingroup baseModules
  * @author Daniel Willkomm, Karl Wessel
  */
-class MIXIM_API BaseMacLayer : public BaseLayer {
+class VEINS_API BaseMacLayer : public BaseLayer {
 public:
     /** @brief Message kinds used by this layer.*/
     enum BaseMacMessageKinds {
@@ -80,40 +76,23 @@ protected:
      **/
     LAddress::L2Type myMacAddr;
 
-    /** @brief debug this core module? */
-    bool coreDebug;
-
-    /** @brief The length of the phy header (in bits).
-     *
-     * Since the MAC layer has to create the signal for
-     * a transmission it has to know the total length of
-     * the packet and therefore needs the length of the
-     * phy header.
-     */
-    int phyHeaderLength;
-
-    /**
-     * The underlying spectrum (definition of interesting freqs) for all signals
-     */
-    Spectrum overallSpectrum;
-
 public:
     // Module_Class_Members( BaseMacLayer, BaseLayer, 0 );
     BaseMacLayer()
         : BaseLayer()
-        , phy(NULL)
+        , phy(nullptr)
         , myMacAddr(LAddress::L2NULL())
     {
     }
     BaseMacLayer(unsigned stacksize)
         : BaseLayer(stacksize)
-        , phy(NULL)
+        , phy(nullptr)
         , myMacAddr(LAddress::L2NULL())
     {
     }
 
     /** @brief Initialization of the module and some variables*/
-    virtual void initialize(int);
+    void initialize(int) override;
 
     /**
      * @brief Returns the MAC address of this MAC module.
@@ -140,21 +119,21 @@ protected:
      *
      *  @sa encapsMsg, sendDown
      */
-    virtual void handleUpperMsg(cMessage* msg);
+    void handleUpperMsg(cMessage* msg) override;
 
     /**
      * If message arrives from lower layer, check whether it is for
      * us. Send it up if yes.
      */
-    virtual void handleLowerMsg(cMessage* msg);
+    void handleLowerMsg(cMessage* msg) override;
 
-    virtual void handleSelfMsg(cMessage* msg)
+    void handleSelfMsg(cMessage* msg) override
     {
         error("BaseMacLayer does not handle self messages");
     };
-    virtual void handleLowerControl(cMessage* msg);
+    void handleLowerControl(cMessage* msg) override;
 
-    virtual void handleUpperControl(cMessage* msg)
+    void handleUpperControl(cMessage* msg) override
     {
         error("BaseMacLayer does not handle control messages from upper layers");
     };
@@ -164,15 +143,6 @@ protected:
 
     /** @brief Encapsulate the NetwPkt into an MacPkt */
     virtual MacPkt* encapsMsg(cPacket*);
-
-    /**
-     * @brief Creates a simple Signal defined over time with the
-     * passed parameters.
-     *
-     * Convenience method to be able to create the appropriate
-     * Signal for the MacToPhyControlInfo
-     */
-    virtual Signal* createSimpleSignal(simtime_t_cref start, simtime_t_cref length, double power, double bitrate);
 
     /**
      * @brief Returns a pointer to this MACs NICs ConnectionManager module.
@@ -204,22 +174,6 @@ protected:
      * @param pSrcAddr    The MAC address of the message receiver.
      */
     virtual cObject* const setUpControlInfo(cMessage* const pMsg, const LAddress::L2Type& pSrcAddr);
-    /**
-     * @brief Attaches a "control info" (MacToPhy) structure (object) to the message pMsg.
-     *
-     * This is most useful when passing packets between protocol layers
-     * of a protocol stack, the control info will contain the signal.
-     *
-     * The "control info" object will be deleted when the message is deleted.
-     * Only one "control info" structure can be attached (the second
-     * setL3ToL2ControlInfo() call throws an error).
-     *
-     * @param pMsg        The message where the "control info" shall be attached.
-     * @param pSignal    The signal which should be send.
-     */
-    virtual cObject* const setDownControlInfo(cMessage* const pMsg, Signal* const pSignal);
 };
 
 } // namespace Veins
-
-#endif

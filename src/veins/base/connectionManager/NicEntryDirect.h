@@ -19,8 +19,7 @@
  *              ConnectionManager module
  **************************************************************************/
 
-#ifndef NICENTRYDIRECT_H
-#define NICENTRYDIRECT_H
+#pragma once
 
 #include "veins/base/connectionManager/NicEntry.h"
 
@@ -38,13 +37,13 @@ class NicEntryDirect : public NicEntry {
 public:
     /** @brief Constructor, initializes all members
      */
-    NicEntryDirect(bool debug)
-        : NicEntry(debug){};
+    NicEntryDirect(cComponent* owner)
+        : NicEntry(owner){};
 
     /**
      * @brief Destructor -- needs to be there...
      */
-    virtual ~NicEntryDirect()
+    ~NicEntryDirect() override
     {
     }
 
@@ -58,7 +57,7 @@ public:
      * gate at this nic, connects the two and updates the freeInGate,
      * freeOutGate and outConns data sets.
      */
-    virtual void connectTo(NicEntry*);
+    void connectTo(NicEntry*) override;
 
     /** @brief Disconnect two nics
      *
@@ -66,9 +65,7 @@ public:
      *
      * @param other reference to remote nic (other NicEntry)
      */
-    virtual void disconnectFrom(NicEntry*);
+    void disconnectFrom(NicEntry*) override;
 };
 
 } // namespace Veins
-
-#endif

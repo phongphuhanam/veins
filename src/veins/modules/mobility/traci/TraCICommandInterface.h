@@ -1,5 +1,4 @@
-#ifndef VEINS_MOBILITY_TRACI_TRACICOMMANDINTERFACE_H_
-#define VEINS_MOBILITY_TRACI_TRACICOMMANDINTERFACE_H_
+#pragma once
 
 #include <list>
 #include <string>
@@ -9,14 +8,15 @@
 #include "veins/base/utils/Coord.h"
 #include "veins/modules/mobility/traci/TraCICoord.h"
 #include "veins/modules/world/traci/trafficLight/TraCITrafficLightProgram.h"
+#include "veins/modules/utility/HasLogProxy.h"
 
 namespace Veins {
 
 class TraCIConnection;
 
-class TraCICommandInterface {
+class TraCICommandInterface : public HasLogProxy {
 public:
-    TraCICommandInterface(TraCIConnection&);
+    TraCICommandInterface(cComponent* owner, TraCIConnection& c);
 
     enum DepartTime {
         DEPART_TIME_TRIGGERED = -1,
@@ -440,7 +440,7 @@ public:
         void setScheme(std::string name);
         void setZoom(double zoom);
         void setBoundary(Coord p1, Coord p2);
-        void takeScreenshot(std::string filename = "");
+        void takeScreenshot(std::string filename = "", int32_t width = -1, int32_t height = -1);
 
         /**
          * Track the vehicle identified by vehicleId in the Sumo GUI.
@@ -463,6 +463,7 @@ private:
         uint8_t netBoundaryType;
         uint8_t timeStepCmd;
         bool timeAsDouble;
+        bool screenshotTakesCompound;
     };
 
     TraCIConnection& connection;
@@ -479,5 +480,3 @@ private:
 };
 
 } // namespace Veins
-
-#endif

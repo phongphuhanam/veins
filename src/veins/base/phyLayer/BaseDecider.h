@@ -5,15 +5,13 @@
  *      Author: karl
  */
 
-#ifndef BASEDECIDER_H_
-#define BASEDECIDER_H_
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/phyLayer/Decider.h"
 
 namespace Veins {
-
-using Veins::AirFrame;
 
 /**
  * @brief Provides some base functionality for most common deciders.
@@ -34,7 +32,7 @@ using Veins::AirFrame;
  * @ingroup decider
  * @ingroup baseModules
  */
-class MIXIM_API BaseDecider : public Decider {
+class VEINS_API BaseDecider : public Decider {
 public:
     /**
      * @brief The kinds of ControlMessages this Decider sends.
@@ -61,8 +59,8 @@ protected:
         EXPECT_END,
     };
 
-    /** @brief sensitivity value for receiving an AirFrame */
-    double sensitivity;
+    /** @brief minPowerLevel value for receiving an AirFrame */
+    double minPowerLevel;
 
     /** @brief Pair of a AirFrame and the state it is in. */
     typedef std::pair<AirFrame*, int> ReceivedSignal;
@@ -77,28 +75,23 @@ protected:
      * Host-index) */
     int myIndex;
 
-    /** @brief toggles display of debugging messages */
-    bool debug;
-
 public:
     /**
      * @brief Initializes the decider with the passed values.
      *
-     * Needs a pointer to its physical layer, the sensitivity, the index of the
-     * host and the debug flag.
+     * Needs a pointer to its physical layer, the minPowerLevel, and the index of the host.
      */
-    BaseDecider(DeciderToPhyInterface* phy, double sensitivity, int myIndex, bool debug)
-        : Decider(phy)
-        , sensitivity(sensitivity)
+    BaseDecider(cComponent* owner, DeciderToPhyInterface* phy, double minPowerLevel, int myIndex)
+        : Decider(owner, phy)
+        , minPowerLevel(minPowerLevel)
         , isChannelIdle(true)
         , myIndex(myIndex)
-        , debug(debug)
     {
         currentSignal.first = 0;
         currentSignal.second = NEW;
     }
 
-    virtual ~BaseDecider()
+    ~BaseDecider() override
     {
     }
 
@@ -109,7 +102,7 @@ public:
      * Returns the time point when the decider wants to be given the AirFrame
      * again.
      */
-    virtual simtime_t processSignal(AirFrame* frame);
+    simtime_t processSignal(AirFrame* frame) override;
 
 protected:
     /**
@@ -117,7 +110,7 @@ protected:
      * handle the signal again.
      *
      * Default implementation checks if the signals receiving power
-     * is above the sensitivity of the radio and we are not already trying
+     * is above the minPowerLevel of the radio and we are not already trying
      * to receive another AirFrame. If thats the case it waits for the end
      * of the signal.
      */
@@ -183,5 +176,3 @@ protected:
 };
 
 } // namespace Veins
-
-#endif /* BASEDECIDER_H_ */

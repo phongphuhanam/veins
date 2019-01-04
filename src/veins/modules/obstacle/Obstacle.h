@@ -18,8 +18,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef OBSTACLE_OBSTACLE_H
-#define OBSTACLE_OBSTACLE_H
+#pragma once
 
 #include <vector>
 #include "veins/base/utils/Coord.h"
@@ -32,7 +31,7 @@ namespace Veins {
  */
 class Obstacle {
 public:
-    typedef std::vector<Coord> Coords;
+    using Coords = std::vector<Coord>;
 
     Obstacle(std::string id, std::string type, double attenuationPerCut, double attenuationPerMeter);
 
@@ -59,5 +58,3 @@ protected:
 };
 
 } // namespace Veins
-
-#endif

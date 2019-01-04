@@ -1,10 +1,9 @@
-#ifndef VEINS_MOBILITY_TRACI_TRACIBUFFER_H_
-#define VEINS_MOBILITY_TRACI_TRACIBUFFER_H_
+#pragma once
 
 #include <cstddef>
 #include <string>
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
 
 namespace Veins {
 
@@ -141,5 +140,3 @@ template <>
 simtime_t TraCIBuffer::read();
 
 } // namespace Veins
-
-#endif /* VEINS_MOBILITY_TRACI_TRACIBUFFER_H_ */

@@ -36,8 +36,6 @@ const short EVT_SCHEDULED_ERASE = 3;
 
 void AnnotationManager::initialize()
 {
-    debug = par("debug");
-
     scheduledEraseEvts.clear();
 
     annotations.clear();
@@ -370,7 +368,7 @@ void AnnotationManager::hide(const Annotation* annotation)
 {
     if (annotation->figure) {
         delete annotationLayer->removeFigure(annotation->figure);
-        annotation->figure = 0;
+        annotation->figure = nullptr;
     }
 
     TraCIScenarioManager* traci = TraCIScenarioManagerAccess().get();

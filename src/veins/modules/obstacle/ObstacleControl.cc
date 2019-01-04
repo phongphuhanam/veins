@@ -35,8 +35,6 @@ ObstacleControl::~ObstacleControl()
 void ObstacleControl::initialize(int stage)
 {
     if (stage == 1) {
-        debug = par("debug");
-
         obstacles.clear();
         cacheEntries.clear();
 
@@ -51,11 +49,7 @@ void ObstacleControl::initialize(int stage)
 
 void ObstacleControl::finish()
 {
-    for (Obstacles::iterator i = obstacles.begin(); i != obstacles.end(); ++i) {
-        for (ObstacleGridRow::iterator j = i->begin(); j != i->end(); ++j) {
-            while (j->begin() != j->end()) erase(*j->begin());
-        }
-    }
+    obstacleOwner.clear();
     obstacles.clear();
 }
 
@@ -93,10 +87,10 @@ void ObstacleControl::addFromXml(cXMLElement* xml)
             std::string id = e->getAttribute("id");
             ASSERT(e->getAttribute("db-per-cut"));
             std::string perCutParS = e->getAttribute("db-per-cut");
-            double perCutPar = strtod(perCutParS.c_str(), 0);
+            double perCutPar = strtod(perCutParS.c_str(), nullptr);
             ASSERT(e->getAttribute("db-per-meter"));
             std::string perMeterParS = e->getAttribute("db-per-meter");
-            double perMeterPar = strtod(perMeterParS.c_str(), 0);
+            double perMeterPar = strtod(perMeterParS.c_str(), nullptr);
 
             perCut[id] = perCutPar;
             perMeter[id] = perMeterPar;
@@ -144,6 +138,7 @@ void ObstacleControl::addFromTypeAndShape(std::string id, std::string typeId, st
 void ObstacleControl::add(Obstacle obstacle)
 {
     Obstacle* o = new Obstacle(obstacle);
+    obstacleOwner.emplace_back(o);
 
     size_t fromRow = std::max(0, int(o->getBboxP1().x / GRIDCELL_SIZE));
     size_t toRow = std::max(0, int(o->getBboxP2().x / GRIDCELL_SIZE));
@@ -180,7 +175,13 @@ void ObstacleControl::erase(const Obstacle* obstacle)
     }
 
     if (annotations && obstacle->visualRepresentation) annotations->erase(obstacle->visualRepresentation);
-    delete obstacle;
+    for (auto itOwner = obstacleOwner.begin(); itOwner != obstacleOwner.end(); ++itOwner) {
+        // find owning pointer and remove it to deallocate obstacle
+        if (itOwner->get() == obstacle) {
+            obstacleOwner.erase(itOwner);
+            break;
+        }
+    }
 
     cacheEntries.clear();
 }

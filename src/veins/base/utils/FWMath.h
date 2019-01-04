@@ -17,8 +17,7 @@
  * part of:     framework implementation developed by tkn
  **************************************************************************/
 
-#ifndef FWMATH_H
-#define FWMATH_H
+#pragma once
 
 //
 // Support functions for mathematical operations
@@ -28,8 +27,7 @@
 #include <limits>
 #include <type_traits>
 
-#include "veins/base/utils/veins.h"
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
 
 namespace Veins {
 
@@ -130,7 +128,7 @@ almost_equal(T x, T y, int ulp = 1)
  * @ingroup utils
  * @author Christian Frank
  */
-class MIXIM_API FWMath {
+class VEINS_API FWMath {
 
 public:
     /**
@@ -242,5 +240,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif

@@ -11,12 +11,9 @@
  *
  ***************************************************************************/
 
-#ifndef HOSTSTATE_H
-#define HOSTSTATE_H
+#pragma once
 
-#include <omnetpp.h>
-
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
 
 namespace Veins {
 
@@ -34,7 +31,7 @@ namespace Veins {
  *
  * @ingroup power
  */
-class MIXIM_API HostState : public cObject {
+class VEINS_API HostState : public cObject {
 public:
     /**
      * @brief Possible host states.
@@ -80,7 +77,7 @@ public:
     /**
      * @brief Returns information about the current state.
      */
-    std::string info() const
+    std::string info() const override
     {
         std::ostringstream ost;
         switch (state) {
@@ -108,5 +105,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif

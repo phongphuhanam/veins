@@ -1,7 +1,6 @@
-#ifndef FIND_MODULE_H
-#define FIND_MODULE_H
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
 
 namespace Veins {
 
@@ -53,11 +52,11 @@ public:
      */
     static cModule* const findHost(cModule* const m)
     {
-        cModule* parent = m != NULL ? m->getParentModule() : NULL;
+        cModule* parent = m != nullptr ? m->getParentModule() : nullptr;
         cModule* node = m;
 
         // all nodes should be a sub module of the simulation which has no parent module!!!
-        while (parent != NULL && parent->getParentModule() != NULL) {
+        while (parent != nullptr && parent->getParentModule() != nullptr) {
             node = parent;
             parent = node->getParentModule();
         }
@@ -66,11 +65,11 @@ public:
     // the constness version
     static const cModule* const findHost(const cModule* const m)
     {
-        const cModule* parent = m != NULL ? m->getParentModule() : NULL;
+        const cModule* parent = m != nullptr ? m->getParentModule() : nullptr;
         const cModule* node = m;
 
         // all nodes should be a sub module of the simulation which has no parent module!!!
-        while (parent != NULL && parent->getParentModule() != NULL) {
+        while (parent != nullptr && parent->getParentModule() != nullptr) {
             node = parent;
             parent = node->getParentModule();
         }
@@ -85,21 +84,21 @@ public:
 template <typename T = cModule>
 class AccessModuleWrap {
 public:
-    typedef T wrapType;
+    using wrapType = T;
 
 private:
     T* pModule;
 
 public:
     AccessModuleWrap()
-        : pModule(NULL)
+        : pModule(nullptr)
     {
     }
 
-    T* const get(cModule* const from = NULL)
+    T* const get(cModule* const from = nullptr)
     {
         if (!pModule) {
-            pModule = FindModule<T*>::findSubModule(FindModule<>::findHost(from != NULL ? from : getSimulation()->getContextModule()));
+            pModule = FindModule<T*>::findSubModule(FindModule<>::findHost(from != nullptr ? from : getSimulation()->getContextModule()));
         }
         return pModule;
     }
@@ -109,16 +108,19 @@ public:
  * @brief Return a vector containing pointers to all submodules of parentModule of type T
  */
 template <class T>
-std::vector<T*> getSubmodulesOfType(cModule* parentModule)
+std::vector<T*> getSubmodulesOfType(cModule* parentModule, bool recurse = false)
 {
     std::vector<T*> result;
     for (cModule::SubmoduleIterator iter(parentModule); !iter.end(); iter++) {
         auto mm = dynamic_cast<T*>(*iter);
         if (mm != nullptr) result.push_back(mm);
+        if (recurse) {
+            for (auto m : getSubmodulesOfType<T>(*iter, recurse)) {
+                result.emplace_back(m);
+            }
+        }
     }
     return result;
 }
 
 } // namespace Veins
-
-#endif

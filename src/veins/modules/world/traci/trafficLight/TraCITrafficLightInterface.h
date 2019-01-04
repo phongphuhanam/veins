@@ -18,10 +18,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef TRACITRAFFICLIGHTINTERFACE_H_
-#define TRACITRAFFICLIGHTINTERFACE_H_
+#pragma once
 
-#include <omnetpp.h>
+#include "veins/veins.h"
+
 #include "veins/modules/mobility/traci/TraCIScenarioManager.h"
 #include "veins/modules/mobility/traci/TraCICommandInterface.h"
 #include "veins/modules/world/traci/trafficLight/TraCITrafficLightProgram.h"
@@ -31,7 +31,7 @@ namespace Veins {
 class TraCITrafficLightInterface : public cSimpleModule {
 public:
     TraCITrafficLightInterface();
-    virtual ~TraCITrafficLightInterface();
+    ~TraCITrafficLightInterface() override;
 
     /** Set parameters for connection to TraCI */
     virtual void preInitialize(const std::string& external_id, const Coord& position, const simtime_t& updateInterval);
@@ -87,8 +87,8 @@ public:
     virtual void setRemainingDuration(const simtime_t& timeTillSwitch, bool setSumo = true);
 
 protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage* msg);
+    void initialize() override;
+    void handleMessage(cMessage* msg) override;
     virtual void handleChangeCommandMessage(cMessage* msg);
     virtual void sendChangeMsg(int changedAttribute, const std::string newValue, const std::string oldValue);
 
@@ -127,4 +127,3 @@ public:
     };
 };
 } // namespace Veins
-#endif /* TRACITRAFFICLIGHTINTERFACE_H_ */

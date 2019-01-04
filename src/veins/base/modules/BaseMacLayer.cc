@@ -21,23 +21,15 @@
 
 #include "veins/base/modules/BaseMacLayer.h"
 
-#include <cassert>
 #include <sstream>
 
-#include "veins/base/toolbox/Signal.h"
 #include "veins/base/phyLayer/MacToPhyInterface.h"
 #include "veins/base/utils/MacToNetwControlInfo.h"
 #include "veins/base/utils/NetwToMacControlInfo.h"
-#include "veins/base/phyLayer/MacToPhyControlInfo.h"
 #include "veins/base/modules/AddressingInterface.h"
 #include "veins/base/connectionManager/ChannelAccess.h"
 #include "veins/base/utils/FindModule.h"
 #include "veins/base/messages/MacPkt_m.h"
-
-#ifndef coreEV
-#define coreEV_clear EV
-#define coreEV EV << logName() << "::" << getClassName() << ": "
-#endif
 
 using namespace Veins;
 
@@ -54,14 +46,11 @@ void BaseMacLayer::initialize(int stage)
 
     if (stage == 0) {
         // get handle to phy layer
-        if ((phy = FindModule<MacToPhyInterface*>::findSubModule(getParentModule())) == NULL) {
+        if ((phy = FindModule<MacToPhyInterface*>::findSubModule(getParentModule())) == nullptr) {
             error("Could not find a PHY module.");
         }
 
         headerLength = par("headerLength");
-        phyHeaderLength = phy->getPhyHeaderLength();
-
-        hasPar("coreDebug") ? coreDebug = par("coreDebug").boolValue() : coreDebug = false;
     }
     if (myMacAddr == LAddress::L2NULL()) {
         // see if there is an addressing module available
@@ -99,7 +88,7 @@ cPacket* BaseMacLayer::decapsMsg(MacPkt* msg)
     setUpControlInfo(m, msg->getSrcAddr());
     // delete the macPkt
     delete msg;
-    coreEV << " message decapsulated " << endl;
+    EV_TRACE << " message decapsulated " << endl;
     return m;
 }
 
@@ -116,7 +105,7 @@ MacPkt* BaseMacLayer::encapsMsg(cPacket* netwPkt)
     // message by the network layer
     cObject* cInfo = netwPkt->removeControlInfo();
 
-    coreEV << "CInfo removed, mac addr=" << getUpperDestinationFromControlInfo(cInfo) << endl;
+    EV_TRACE << "CInfo removed, mac addr=" << getUpperDestinationFromControlInfo(cInfo) << endl;
     pkt->setDestAddr(getUpperDestinationFromControlInfo(cInfo));
 
     // delete the control info
@@ -127,7 +116,7 @@ MacPkt* BaseMacLayer::encapsMsg(cPacket* netwPkt)
 
     // encapsulate the network packet
     pkt->encapsulate(netwPkt);
-    coreEV << "pkt encapsulated\n";
+    EV_TRACE << "pkt encapsulated\n";
 
     return pkt;
 }
@@ -141,7 +130,7 @@ MacPkt* BaseMacLayer::encapsMsg(cPacket* netwPkt)
  **/
 void BaseMacLayer::handleUpperMsg(cMessage* mac)
 {
-    assert(dynamic_cast<cPacket*>(mac));
+    ASSERT(dynamic_cast<cPacket*>(mac));
     sendDown(encapsMsg(static_cast<cPacket*>(mac)));
 }
 
@@ -161,11 +150,11 @@ void BaseMacLayer::handleLowerMsg(cMessage* msg)
 
     // only foward to upper layer if message is for me or broadcast
     if ((dest == myMacAddr) || LAddress::isL2Broadcast(dest)) {
-        coreEV << "message with mac addr " << src << " for me (dest=" << dest << ") -> forward packet to upper layer\n";
+        EV_TRACE << "message with mac addr " << src << " for me (dest=" << dest << ") -> forward packet to upper layer\n";
         sendUp(decapsMsg(mac));
     }
     else {
-        coreEV << "message with mac addr " << src << " not for me (dest=" << dest << ") -> delete (my MAC=" << myMacAddr << ")\n";
+        EV_TRACE << "message with mac addr " << src << " not for me (dest=" << dest << ") -> delete (my MAC=" << myMacAddr << ")\n";
         delete mac;
     }
 }
@@ -182,21 +171,6 @@ void BaseMacLayer::handleLowerControl(cMessage* msg)
         delete msg;
         break;
     }
-}
-
-Signal* BaseMacLayer::createSimpleSignal(simtime_t_cref start, simtime_t_cref length, double power, double bitrate)
-{
-    // create signal with start at current simtime and passed length
-    Signal* s = new Signal(overallSpectrum, start, length);
-
-    (*s)[0] = power;
-    s->setBitrate(bitrate);
-
-    s->setCenterFrequencyIndex(0);
-    s->setDataStart(0);
-    s->setDataEnd(0);
-
-    return s;
 }
 
 BaseConnectionManager* BaseMacLayer::getConnectionManager()
@@ -216,12 +190,4 @@ const LAddress::L2Type& BaseMacLayer::getUpperDestinationFromControlInfo(const c
 cObject* const BaseMacLayer::setUpControlInfo(cMessage* const pMsg, const LAddress::L2Type& pSrcAddr)
 {
     return MacToNetwControlInfo::setControlInfo(pMsg, pSrcAddr);
-}
-
-/**
- * Attaches a "control info" (MacToPhy) structure (object) to the message pMsg.
- */
-cObject* const BaseMacLayer::setDownControlInfo(cMessage* const pMsg, Signal* const pSignal)
-{
-    return MacToPhyControlInfo::setControlInfo(pMsg, pSignal);
 }

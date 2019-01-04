@@ -17,8 +17,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-#ifndef DUMMYANALOGUEMODEL_H_
-#define DUMMYANALOGUEMODEL_H_
+#pragma once
 
 #include "veins/base/phyLayer/AnalogueModel.h"
 
@@ -29,16 +28,15 @@ protected:
     const double factor;
 
 public:
-    DummyAnalogueModel(double factor)
-        : factor(factor)
+    DummyAnalogueModel(cComponent* owner, double factor)
+        : AnalogueModel(owner)
+        , factor(factor)
     {
     }
 
-    void filterSignal(Signal* signal, const Coord& sendersPos, const Coord& receiverPos) override
+    void filterSignal(Signal* signal) override
     {
-        signal->addUniformAttenuation(factor);
+        *signal *= factor;
     }
 };
 } // namespace Veins
-
-#endif /*DUMMYANALOGUEMODEL_H_*/

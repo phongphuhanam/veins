@@ -18,8 +18,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef SPECTRUM_H_
-#define SPECTRUM_H_
+#pragma once
 
 #include <stdint.h>
 #include <iostream>
@@ -28,37 +27,34 @@
 #include <iterator>
 #include <memory>
 #include <fstream>
-#include <assert.h>
 #include <map>
+
+#include "veins/veins.h"
 
 namespace Veins {
 
-typedef std::vector<double> Freqs;
-
 class Spectrum {
 public:
+    using Frequency = double;
+    using Frequencies = std::vector<Frequency>;
+
     Spectrum() = default;
-    Spectrum(Freqs freqs);
+    Spectrum(Frequencies freqs);
 
     const double& operator[](size_t index) const;
 
     size_t getNumFreqs() const;
 
     size_t indexOf(double freq) const;
-    size_t indexNearLow(double freq) const;
-    size_t indexNearUp(double freq) const;
 
     double freqAt(size_t freqIndex) const;
 
-    void print() const;
-    void toFile(std::string path) const;
-
     friend bool operator==(const Spectrum& lhs, const Spectrum& rhs);
 
+    friend std::ostream& operator<<(std::ostream& os, const Spectrum& s);
+
 private:
-    Freqs frequencies;
+    Frequencies frequencies;
 };
 
 } // namespace Veins
-
-#endif /* SPECTRUM_H_ */

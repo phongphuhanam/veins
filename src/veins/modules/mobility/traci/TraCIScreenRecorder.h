@@ -18,10 +18,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef WORLD_TRACI_TRACISCREENRECORDER_H
-#define WORLD_TRACI_TRACISCREENRECORDER_H
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
 
 namespace Veins {
 
@@ -43,14 +42,12 @@ namespace Veins {
  */
 class TraCIScreenRecorder : public cSimpleModule {
 public:
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage* msg);
-    virtual void finish();
+    void initialize(int stage) override;
+    void handleMessage(cMessage* msg) override;
+    void finish() override;
 
 protected:
     cMessage* takeScreenshot;
 };
 
 } // namespace Veins
-
-#endif

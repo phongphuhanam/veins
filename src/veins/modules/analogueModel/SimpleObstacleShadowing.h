@@ -18,22 +18,22 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef SIMPLEOBSTACLEFADING_H_
-#define SIMPLEOBSTACLEFADING_H_
+#pragma once
+
+#include <cstdlib>
 
 #include "veins/base/phyLayer/AnalogueModel.h"
 #include "veins/base/modules/BaseWorldUtility.h"
 #include "veins/modules/obstacle/ObstacleControl.h"
 #include "veins/base/utils/Move.h"
-#include "veins/base/toolbox/Signal.h"
 #include "veins/base/messages/AirFrame_m.h"
 
 using Veins::AirFrame;
 using Veins::ObstacleControl;
 
-#include <cstdlib>
-
 namespace Veins {
+
+class Signal;
 
 /**
  * @brief Basic implementation of a SimpleObstacleShadowing
@@ -45,17 +45,11 @@ protected:
     /** @brief reference to global ObstacleControl instance */
     ObstacleControl& obstacleControl;
 
-    /** @brief carrier frequency needed for calculation */
-    double carrierFrequency;
-
     /** @brief Information needed about the playground */
     const bool useTorus;
 
     /** @brief The size of the playground.*/
     const Coord& playgroundSize;
-
-    /** @brief Whether debug messages should be displayed. */
-    bool debug;
 
 public:
     /**
@@ -65,26 +59,23 @@ public:
      * The constructor needs some specific knowledge in order to create
      * its mapping properly:
      *
+     * @param owner pointer to the cComponent that owns this AnalogueModel
      * @param obstacleControl the parent module
-     * @param carrierFrequency the carrier frequency
      * @param useTorus information about the playground the host is moving in
      * @param playgroundSize information about the playground the host is moving in
-     * @param debug display debug messages?
      */
-    SimpleObstacleShadowing(ObstacleControl& obstacleControl, double carrierFrequency, bool useTorus, const Coord& playgroundSize, bool debug);
+    SimpleObstacleShadowing(cComponent* owner, ObstacleControl& obstacleControl, bool useTorus, const Coord& playgroundSize);
 
     /**
      * @brief Filters a specified Signal by adding an attenuation
      * over time to the Signal.
      */
-    virtual void filterSignal(Signal* signal, const Coord& sendersPos, const Coord& receiverPos) override;
+    void filterSignal(Signal* signal) override;
 
-    virtual bool neverIncreasesPower() override
+    bool neverIncreasesPower() override
     {
         return true;
     }
 };
 
 } // namespace Veins
-
-#endif /*PATHLOSSMODEL_H_*/

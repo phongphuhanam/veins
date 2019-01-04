@@ -19,18 +19,16 @@
  * part of:     framework implementation developed by tkn
  **************************************************************************/
 
-#ifndef BASE_MOBILITY_H
-#define BASE_MOBILITY_H
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/modules/BatteryAccess.h"
 #include "veins/base/utils/Coord.h"
 #include "veins/base/utils/Move.h"
 #include "veins/base/modules/BaseWorldUtility.h"
 
 namespace Veins {
-
-using Veins::BatteryAccess;
 
 /**
  * @brief Base module for all mobility modules.
@@ -61,7 +59,7 @@ using Veins::BatteryAccess;
  * @ingroup baseModules
  * @author Daniel Willkomm, Andras Varga
  */
-class MIXIM_API BaseMobility : public BatteryAccess {
+class VEINS_API BaseMobility : public BatteryAccess {
 public:
     /**
      * @brief Selects how a node should behave if it reaches the edge
@@ -102,6 +100,9 @@ public:
         Z_BIGGER ///< z bigger or equal than playground size
     };
 
+    /** @brief Store the category of HostMove */
+    const static simsignal_t mobilityStateChangedSignal;
+
 protected:
     /** @brief Pointer to BaseWorldUtility -- these two must know each other */
     BaseWorldUtility* world;
@@ -109,17 +110,11 @@ protected:
     /** @brief Stores the current position and move pattern of the host*/
     Move move;
 
-    /** @brief Store the category of HostMove */
-    const static simsignalwrap_t mobilityStateChangedSignal;
-
     /** @brief Time interval (in seconds) to update the hosts position*/
     simtime_t updateInterval;
 
     /** @brief Self message to trigger movement */
     cMessage* moveMsg;
-
-    /** @brief debug this core module? */
-    bool coreDebug;
 
     /** @brief Enable depth dependent scaling of nodes when 3d and tkenv is
      * used. */
@@ -147,7 +142,7 @@ public:
      * Dispatches border messages to handleBorderMsg() and all other
      * self-messages to handleSelfMsg()
      */
-    virtual void handleMessage(cMessage* msg);
+    void handleMessage(cMessage* msg) override;
 
     /** @brief Initializes mobility model parameters.
      *
@@ -163,16 +158,15 @@ public:
      * If the speed of the host is bigger than 0 a first MOVE_HOST self
      * message is scheduled in stage 1
      */
-    virtual void initialize(int);
+    void initialize(int) override;
 
     /** @brief Delete dynamically allocated objects*/
-    virtual void finish(){};
+    void finish() override {};
 
-    /** @brief Returns the current position at the current simulation time. */
-    virtual Coord getCurrentPosition(/*simtime_t_cref stWhen = simTime()*/) const
+    /** @brief Returns the current position at the given simulation time. */
+    virtual Coord getPositionAt(simtime_t_cref stWhen) const
     {
-        // return move.getPositionAt(stWhen);
-        return move.getStartPos();
+        return move.getPositionAt(stWhen);
     }
 
     virtual Coord getCurrentOrientation() const
@@ -413,5 +407,3 @@ protected:
 };
 
 } // namespace Veins
-
-#endif

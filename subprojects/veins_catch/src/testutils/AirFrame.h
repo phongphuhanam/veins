@@ -17,22 +17,20 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-#ifndef TESTUTILS_AIRFRAME_H
-#define TESTUTILS_AIRFRAME_H
+#pragma once
 
-#include <omnetpp.h>
+#include "veins/veins.h"
+
 #include "veins/base/messages/AirFrame_m.h"
 
 Veins::AirFrame createAirframe(double centerFreq, double bandwidth, omnetpp::simtime_t start, omnetpp::simtime_t length, double power)
 {
     Veins::Signal s(Veins::Spectrum({centerFreq - 5e6, centerFreq, centerFreq + 5e6}), start, length);
-    s(centerFreq - 5e6) = power;
-    s(centerFreq) = power;
-    s(centerFreq + 5e6) = power;
+    s.atFrequency(centerFreq - 5e6) = power;
+    s.atFrequency(centerFreq) = power;
+    s.atFrequency(centerFreq + 5e6) = power;
 
     Veins::AirFrame frame;
     frame.setSignal(s);
     return frame;
 }
-
-#endif

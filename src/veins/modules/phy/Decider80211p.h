@@ -20,8 +20,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef DECIDER80211p_H_
-#define DECIDER80211p_H_
+#pragma once
 
 #include "veins/base/phyLayer/BaseDecider.h"
 #include "veins/modules/utility/Consts80211p.h"
@@ -41,7 +40,7 @@ using Veins::AirFrame;
  *
  * @ingroup decider
  *
- * @see BaseWaveApplLayer
+ * @see DemoBaseApplLayer
  * @see Mac1609_4
  * @see PhyLayer80211p
  * @see Decider80211p
@@ -135,7 +134,7 @@ protected:
      */
     virtual DeciderResult* checkIfSignalOk(AirFrame* frame);
 
-    virtual simtime_t processNewSignal(AirFrame* frame);
+    simtime_t processNewSignal(AirFrame* frame) override;
 
     /**
      * @brief Processes a received AirFrame.
@@ -146,7 +145,7 @@ protected:
      *
      * @return    usually return a value for: 'do not pass it again'
      */
-    virtual simtime_t processSignalEnd(AirFrame* frame);
+    simtime_t processSignalEnd(AirFrame* frame) override;
 
     /** @brief computes if packet is ok or has errors*/
     enum PACKET_OK_RESULT packetOk(double snirMin, double snrMin, int lengthMPDU, double bitrate);
@@ -154,10 +153,10 @@ protected:
 public:
     /**
      * @brief Initializes the Decider with a pointer to its PhyLayer and
-     * specific values for threshold and sensitivity
+     * specific values for threshold and minPowerLevel
      */
-    Decider80211p(DeciderToPhyInterface* phy, double sensitivity, double ccaThreshold, bool allowTxDuringRx, double centerFrequency, int myIndex = -1, bool collectCollisionStatistics = false, bool debug = false)
-        : BaseDecider(phy, sensitivity, myIndex, debug)
+    Decider80211p(cComponent* owner, DeciderToPhyInterface* phy, double minPowerLevel, double ccaThreshold, bool allowTxDuringRx, double centerFrequency, int myIndex = -1, bool collectCollisionStatistics = false)
+        : BaseDecider(owner, phy, minPowerLevel, myIndex)
         , ccaThreshold(ccaThreshold)
         , allowTxDuringRx(allowTxDuringRx)
         , centerFrequency(centerFrequency)
@@ -168,7 +167,7 @@ public:
         , notifyRxStart(false)
     {
         phy11p = dynamic_cast<Decider80211pToPhy80211pInterface*>(phy);
-        assert(phy11p);
+        ASSERT(phy11p);
     }
 
     void setPath(std::string myPath)
@@ -177,8 +176,8 @@ public:
     }
 
     bool cca(simtime_t_cref, AirFrame*);
-    int getSignalState(AirFrame* frame);
-    virtual ~Decider80211p();
+    int getSignalState(AirFrame* frame) override;
+    ~Decider80211p() override;
 
     void changeFrequency(double freq);
 
@@ -192,14 +191,14 @@ public:
      */
     void setCCAThreshold(double ccaThreshold_dBm);
 
-    void setChannelIdleStatus(bool isIdle);
+    void setChannelIdleStatus(bool isIdle) override;
 
     /**
      * @brief invoke this method when the phy layer is also finalized,
      * so that statistics recorded by the decider can be written to
      * the output file
      */
-    virtual void finish();
+    void finish() override;
 
     /**
      * @brief Notifies the decider that phy layer is starting a transmission.
@@ -210,7 +209,7 @@ public:
      * to this method, the decider can flag the ongoing frame as non received
      * because of the transmission.
      */
-    virtual void switchToTx();
+    void switchToTx() override;
 
     /**
      * @brief notify PHY-RXSTART.indication
@@ -219,5 +218,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif /* DECIDER80211p_H_ */

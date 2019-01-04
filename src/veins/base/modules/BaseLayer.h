@@ -19,10 +19,10 @@
  *              subclass to create your own layer
  **************************************************************************/
 
-#ifndef BASE_LAYER_H
-#define BASE_LAYER_H
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/modules/BatteryAccess.h"
 #include "veins/base/utils/PassedMessage.h"
 
@@ -39,14 +39,14 @@ using Veins::BatteryAccess;
  * @ingroup baseModules
  * @author Andreas Koepke
  */
-class MIXIM_API BaseLayer : public BatteryAccess {
+class VEINS_API BaseLayer : public BatteryAccess {
 public:
     /** @brief SignalID for packets. */
-    const static simsignalwrap_t catPacketSignal;
+    const static simsignal_t catPacketSignal;
     /** @brief Signal for passed messages.*/
-    const static simsignalwrap_t catPassedMsgSignal;
+    const static simsignal_t catPassedMsgSignal;
     /** @brief Signal for dropped packets.*/
-    const static simsignalwrap_t catDroppedPacketSignal;
+    const static simsignal_t catDroppedPacketSignal;
 
 protected:
     /** @name gate ids*/
@@ -68,25 +68,25 @@ protected:
 public:
     BaseLayer()
         : BatteryAccess()
-        , passedMsg(NULL)
+        , passedMsg(nullptr)
     {
     }
     BaseLayer(unsigned stacksize)
         : BatteryAccess(stacksize)
-        , passedMsg(NULL)
+        , passedMsg(nullptr)
     {
     }
-    virtual ~BaseLayer();
+    ~BaseLayer() override;
     // Module_Class_Members(BaseLayer, BaseModule, 0 );
 
     /** @brief Initialization of the module and some variables*/
-    virtual void initialize(int);
+    void initialize(int) override;
 
     /** @brief Called every time a message arrives*/
-    virtual void handleMessage(cMessage*);
+    void handleMessage(cMessage*) override;
 
     /** @brief Called when the simulation has finished.*/
-    virtual void finish();
+    void finish() override;
 
 protected:
     /**
@@ -167,5 +167,3 @@ protected:
 };
 
 } // namespace Veins
-
-#endif

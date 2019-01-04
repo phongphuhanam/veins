@@ -20,13 +20,15 @@
 
 #include "veins/modules/application/traci/TraCIDemo11p.h"
 
+#include "veins/modules/application/traci/TraCIDemo11pMessage_m.h"
+
 using namespace Veins;
 
 Define_Module(Veins::TraCIDemo11p);
 
 void TraCIDemo11p::initialize(int stage)
 {
-    BaseWaveApplLayer::initialize(stage);
+    DemoBaseApplLayer::initialize(stage);
     if (stage == 0) {
         sentMessage = false;
         lastDroveAt = simTime();
@@ -34,23 +36,25 @@ void TraCIDemo11p::initialize(int stage)
     }
 }
 
-void TraCIDemo11p::onWSA(WaveServiceAdvertisment* wsa)
+void TraCIDemo11p::onWSA(DemoServiceAdvertisment* wsa)
 {
     if (currentSubscribedServiceId == -1) {
-        mac->changeServiceChannel(wsa->getTargetChannel());
+        mac->changeServiceChannel(static_cast<Channel>(wsa->getTargetChannel()));
         currentSubscribedServiceId = wsa->getPsid();
         if (currentOfferedServiceId != wsa->getPsid()) {
             stopService();
-            startService((Channels::ChannelNumber) wsa->getTargetChannel(), wsa->getPsid(), "Mirrored Traffic Service");
+            startService(static_cast<Channel>(wsa->getTargetChannel()), wsa->getPsid(), "Mirrored Traffic Service");
         }
     }
 }
 
-void TraCIDemo11p::onWSM(WaveShortMessage* wsm)
+void TraCIDemo11p::onWSM(BaseFrame1609_4* frame)
 {
+    TraCIDemo11pMessage* wsm = check_and_cast<TraCIDemo11pMessage*>(frame);
+
     findHost()->getDisplayString().setTagArg("i", 1, "green");
 
-    if (mobility->getRoadId()[0] != ':') traciVehicle->changeRoute(wsm->getWsmData(), 9999);
+    if (mobility->getRoadId()[0] != ':') traciVehicle->changeRoute(wsm->getDemoData(), 9999);
     if (!sentMessage) {
         sentMessage = true;
         // repeat the received traffic update once in 2 seconds plus some random delay
@@ -62,7 +66,7 @@ void TraCIDemo11p::onWSM(WaveShortMessage* wsm)
 
 void TraCIDemo11p::handleSelfMsg(cMessage* msg)
 {
-    if (WaveShortMessage* wsm = dynamic_cast<WaveShortMessage*>(msg)) {
+    if (TraCIDemo11pMessage* wsm = dynamic_cast<TraCIDemo11pMessage*>(msg)) {
         // send this message on the service channel until the counter is 3 or higher.
         // this code only runs when channel switching is enabled
         sendDown(wsm->dup());
@@ -77,13 +81,13 @@ void TraCIDemo11p::handleSelfMsg(cMessage* msg)
         }
     }
     else {
-        BaseWaveApplLayer::handleSelfMsg(msg);
+        DemoBaseApplLayer::handleSelfMsg(msg);
     }
 }
 
 void TraCIDemo11p::handlePositionUpdate(cObject* obj)
 {
-    BaseWaveApplLayer::handlePositionUpdate(obj);
+    DemoBaseApplLayer::handlePositionUpdate(obj);
 
     // stopped for for at least 10s?
     if (mobility->getSpeed() < 1) {
@@ -91,15 +95,15 @@ void TraCIDemo11p::handlePositionUpdate(cObject* obj)
             findHost()->getDisplayString().setTagArg("i", 1, "red");
             sentMessage = true;
 
-            WaveShortMessage* wsm = new WaveShortMessage();
+            TraCIDemo11pMessage* wsm = new TraCIDemo11pMessage();
             populateWSM(wsm);
-            wsm->setWsmData(mobility->getRoadId().c_str());
+            wsm->setDemoData(mobility->getRoadId().c_str());
 
             // host is standing still due to crash
             if (dataOnSch) {
-                startService(Channels::SCH2, 42, "Traffic Information Service");
+                startService(Channel::sch2, 42, "Traffic Information Service");
                 // started service and server advertising, schedule message to self to send later
-                scheduleAt(computeAsynchronousSendingTime(1, type_SCH), wsm);
+                scheduleAt(computeAsynchronousSendingTime(1, ChannelType::service), wsm);
             }
             else {
                 // send right away on CCH, because channel switching is disabled

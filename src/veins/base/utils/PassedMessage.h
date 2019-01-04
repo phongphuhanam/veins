@@ -1,15 +1,12 @@
 /* -*- mode:c++ -*- */
 
-#ifndef PASSED_MESSAGE_H
-#define PASSED_MESSAGE_H
+#pragma once
 
-#include <omnetpp.h>
-
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
 
 namespace Veins {
 
-class MIXIM_API PassedMessage : public cObject {
+class VEINS_API PassedMessage : public cObject {
 public:
     enum gates_t {
         UPPER_DATA,
@@ -42,7 +39,7 @@ public:
             break;
         default:
             throw cRuntimeError("PassedMessage::gateToString: got invalid value");
-            s = 0;
+            s = nullptr;
             break;
         }
         return s;
@@ -60,5 +57,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif

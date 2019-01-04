@@ -20,21 +20,24 @@
 
 #include "veins/modules/application/traci/TraCIDemoRSU11p.h"
 
+#include "veins/modules/application/traci/TraCIDemo11pMessage_m.h"
+
 using namespace Veins;
 
 Define_Module(Veins::TraCIDemoRSU11p);
 
-void TraCIDemoRSU11p::onWSA(WaveServiceAdvertisment* wsa)
+void TraCIDemoRSU11p::onWSA(DemoServiceAdvertisment* wsa)
 {
     // if this RSU receives a WSA for service 42, it will tune to the chan
     if (wsa->getPsid() == 42) {
-        mac->changeServiceChannel(wsa->getTargetChannel());
+        mac->changeServiceChannel(static_cast<Channel>(wsa->getTargetChannel()));
     }
 }
 
-void TraCIDemoRSU11p::onWSM(WaveShortMessage* wsm)
+void TraCIDemoRSU11p::onWSM(BaseFrame1609_4* frame)
 {
+    TraCIDemo11pMessage* wsm = check_and_cast<TraCIDemo11pMessage*>(frame);
+
     // this rsu repeats the received traffic update in 2 seconds plus some random delay
-    wsm->setSenderAddress(myId);
     sendDelayedDown(wsm->dup(), 2 + uniform(0.01, 0.2));
 }

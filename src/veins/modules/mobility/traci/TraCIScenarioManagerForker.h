@@ -18,10 +18,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef WORLD_TRACI_TRACISCENARIOMANAGERFORKER_H
-#define WORLD_TRACI_TRACISCENARIOMANAGERFORKER_H
+#pragma once
 
-#include <omnetpp.h>
+#include "veins/veins.h"
 
 #include "veins/modules/mobility/traci/TraCIScenarioManager.h"
 #include "veins/modules/mobility/traci/TraCILauncher.h"
@@ -46,9 +45,9 @@ namespace Veins {
 class TraCIScenarioManagerForker : public TraCIScenarioManager {
 public:
     TraCIScenarioManagerForker();
-    virtual ~TraCIScenarioManagerForker();
-    virtual void initialize(int stage);
-    virtual void finish();
+    ~TraCIScenarioManagerForker() override;
+    void initialize(int stage) override;
+    void finish() override;
 
 protected:
     std::string commandLine; /**< command line for running TraCI server (substituting $configFile, $seed, $port) */
@@ -69,5 +68,3 @@ public:
     };
 };
 } // namespace Veins
-
-#endif

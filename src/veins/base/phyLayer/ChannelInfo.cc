@@ -1,7 +1,6 @@
 #include "veins/base/phyLayer/ChannelInfo.h"
 
 #include <iostream>
-#include <assert.h>
 
 using namespace Veins;
 
@@ -9,7 +8,7 @@ using Veins::AirFrame;
 
 void ChannelInfo::addAirFrame(AirFrame* frame, simtime_t_cref startTime)
 {
-    assert(airFrameStarts.count(frame) == 0);
+    ASSERT(airFrameStarts.count(frame) == 0);
 
     // check if we were previously empty
     if (isChannelEmpty()) {
@@ -26,7 +25,7 @@ void ChannelInfo::addAirFrame(AirFrame* frame, simtime_t_cref startTime)
     // add to start time map
     airFrameStarts[frame] = startTime;
 
-    assert(!isChannelEmpty());
+    ASSERT(!isChannelEmpty());
 }
 
 simtime_t ChannelInfo::findEarliestInfoPoint()
@@ -55,7 +54,7 @@ simtime_t ChannelInfo::findEarliestInfoPoint()
 
 simtime_t ChannelInfo::removeAirFrame(AirFrame* frame)
 {
-    assert(airFrameStarts.count(frame) > 0);
+    ASSERT(airFrameStarts.count(frame) > 0);
 
     // get start of AirFrame
     simtime_t_cref startTime = airFrameStarts[frame];
@@ -98,7 +97,7 @@ void ChannelInfo::assertNoIntersections()
                     if (e0 >= s1 && s0 <= e1) intersects = true;
                 }
             }
-            assert(intersects);
+            ASSERT(intersects);
         }
     }
 }
@@ -118,12 +117,12 @@ void ChannelInfo::deleteAirFrame(AirFrameMatrix& airFrames, AirFrame* frame, sim
         }
     }
 
-    assert(false);
+    ASSERT(false);
 }
 
 bool ChannelInfo::canDiscardInterval(simtime_t_cref startTime, simtime_t_cref endTime)
 {
-    assert(recordStartTime >= 0 || recordStartTime == -1);
+    ASSERT(recordStartTime >= 0 || recordStartTime == -1);
 
     // only if it ends before the point in time we started recording or if
     // we aren't recording at all and it does not intersect with any active one
@@ -138,7 +137,7 @@ void ChannelInfo::checkAndCleanInterval(simtime_t_cref startTime, simtime_t_cref
     IntersectionIterator inactiveIntersectIt(&inactiveAirFrames, startTime, endTime);
 
     AirFrame* inactiveIntersect = inactiveIntersectIt.next();
-    while (inactiveIntersect != 0) {
+    while (inactiveIntersect != nullptr) {
         simtime_t_cref currentStart = airFrameStarts[inactiveIntersect];
         simtime_t_cref currentEnd = currentStart + inactiveIntersect->getDuration();
 
@@ -148,7 +147,7 @@ void ChannelInfo::checkAndCleanInterval(simtime_t_cref startTime, simtime_t_cref
             airFrameStarts.erase(inactiveIntersect);
 
             delete inactiveIntersect;
-            inactiveIntersect = 0;
+            inactiveIntersect = nullptr;
         }
         inactiveIntersect = inactiveIntersectIt.next();
     }
@@ -173,7 +172,7 @@ void ChannelInfo::addToInactives(AirFrame* frame, simtime_t_cref startTime, simt
 bool ChannelInfo::isIntersecting(const AirFrameMatrix& airFrames, simtime_t_cref from, simtime_t_cref to) const
 {
     ConstIntersectionIterator it(&airFrames, from, to);
-    return (it.next() != 0);
+    return (it.next() != nullptr);
 }
 
 void ChannelInfo::getIntersections(const AirFrameMatrix& airFrames, simtime_t_cref from, simtime_t_cref to, AirFrameVector& outVector) const
@@ -181,7 +180,7 @@ void ChannelInfo::getIntersections(const AirFrameMatrix& airFrames, simtime_t_cr
     ConstIntersectionIterator it(&airFrames, from, to);
 
     AirFrame* intersect = it.next();
-    while (intersect != 0) {
+    while (intersect != nullptr) {
         outVector.push_back(intersect);
         intersect = it.next();
     }

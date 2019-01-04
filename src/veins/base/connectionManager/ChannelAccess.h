@@ -20,22 +20,22 @@
  *                from this class and use the sendToChannel() function!!
  **************************************************************************/
 
-#ifndef CHANNEL_ACCESS_H
-#define CHANNEL_ACCESS_H
+#pragma once
 
-#include <omnetpp.h>
 #include <vector>
 
-#include "veins/base/utils/MiXiMDefs.h"
-#include "veins/base/modules/BatteryAccess.h"
+#include "veins/veins.h"
 
+#include "veins/base/utils/AntennaPosition.h"
+#include "veins/base/modules/BatteryAccess.h"
 #include "veins/base/utils/FindModule.h"
 #include "veins/base/modules/BaseMobility.h"
+#include "veins/base/utils/Heading.h"
 
 namespace Veins {
 
-typedef AccessModuleWrap<BaseMobility> ChannelMobilityAccessType;
-typedef ChannelMobilityAccessType::wrapType* ChannelMobilityPtrType;
+using ChannelMobilityAccessType = AccessModuleWrap<BaseMobility>;
+using ChannelMobilityPtrType = ChannelMobilityAccessType::wrapType*;
 class NicEntry;
 class BaseConnectionManager;
 class BaseWorldUtility;
@@ -55,19 +55,13 @@ class BaseWorldUtility;
  * @ingroup phyLayer
  * @ingroup baseModules
  **/
-class MIXIM_API ChannelAccess : public BatteryAccess, protected ChannelMobilityAccessType {
+class VEINS_API ChannelAccess : public BatteryAccess, protected ChannelMobilityAccessType {
 protected:
-    /** @brief A signal used to subscribe to mobility state changes. */
-    const static simsignalwrap_t mobilityStateChangedSignal;
-
     /** @brief use sendDirect or not?*/
     bool useSendDirect;
 
     /** @brief Pointer to the PropagationModel module*/
     BaseConnectionManager* cc;
-
-    /** @brief debug this core module? */
-    bool coreDebug;
 
     /** @brief Defines if the physical layer should simulate propagation delay.*/
     bool usePropagationDelay;
@@ -77,6 +71,18 @@ protected:
 
     /** @brief Pointer to the World Utility, to obtain some global information*/
     BaseWorldUtility* world;
+
+    /** @brief Current antenna position */
+    AntennaPosition antennaPosition;
+
+    /** @brief Current antenna heading (angle) */
+    Heading antennaHeading;
+
+    /** @brief Offset of antenna position (in m) with respect to what a BaseMobility module will tell us */
+    Coord antennaOffset = Coord(0, 0, 0);
+
+    /** @brief Offset of antenna orientation (yaw, in rad) with respect to what a BaseMobility module will tell us */
+    double antennaOffsetYaw = 0;
 
 protected:
     /**
@@ -111,7 +117,7 @@ public:
      * Upon initialization ChannelAccess registers the nic parent module
      * to have all its connections handeled by ConnectionManager
      **/
-    virtual void initialize(int stage);
+    void initialize(int stage) override;
 
     /**
      * @brief Called by the signalling mechanism to inform of changes.
@@ -119,7 +125,7 @@ public:
      * ChannelAccess is subscribed to position changes and informs the
      * ConnectionManager.
      */
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details);
+    void receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details) override;
 
     /**
      * @brief Returns the host's mobility module.
@@ -128,8 +134,11 @@ public:
     {
         return ChannelMobilityAccessType::get(this);
     }
+
+    virtual AntennaPosition getAntennaPosition() const
+    {
+        return antennaPosition;
+    }
 };
 
 } // namespace Veins
-
-#endif

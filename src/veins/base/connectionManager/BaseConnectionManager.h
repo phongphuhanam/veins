@@ -1,8 +1,10 @@
-#ifndef BASECONNECTIONMANAGER_H_
-#define BASECONNECTIONMANAGER_H_
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
+#include "veins/base/utils/AntennaPosition.h"
 #include "veins/base/connectionManager/NicEntry.h"
+#include "veins/base/utils/Heading.h"
 
 namespace Veins {
 
@@ -24,7 +26,7 @@ class ChannelAccess;
  * @author Christoph Sommer ("unregisterNic()"-method)
  * @sa ChannelAccess
  */
-class MIXIM_API BaseConnectionManager : public cSimpleModule {
+class VEINS_API BaseConnectionManager : public cSimpleModule {
 private:
     /**
      * @brief Represents a position inside a grid.
@@ -138,7 +140,7 @@ private:
          */
         void insert(const GridCoord& c, unsigned pos)
         {
-            if (data[pos] == 0) {
+            if (data[pos] == nullptr) {
                 data[pos] = new GridCoord(c);
                 size++;
             }
@@ -167,7 +169,7 @@ private:
         ~CoordSet()
         {
             for (unsigned i = 0; i < maxSize; i++) {
-                if (data[i] != 0) {
+                if (data[i] != nullptr) {
                     delete data[i];
                 }
             }
@@ -191,11 +193,11 @@ private:
         GridCoord* next()
         {
             for (; current < maxSize; current++) {
-                if (data[current] != 0) {
+                if (data[current] != nullptr) {
                     return data[current++];
                 }
             }
-            return 0;
+            return nullptr;
         }
 
         /**
@@ -224,9 +226,6 @@ protected:
     /** @brief Map from nic-module ids to nic-module pointers.*/
     NicEntries nics;
 
-    /** @brief Set debugging for the basic module*/
-    bool coreDebug;
-
     /** @brief Does the ConnectionManager use sendDirect or not?*/
     bool sendDirect;
 
@@ -248,11 +247,11 @@ protected:
     bool drawMIR;
 
     /** @brief Type for 1-dimensional array of NicEntries.*/
-    typedef std::vector<NicEntries> RowVector;
+    using RowVector = std::vector<NicEntries>;
     /** @brief Type for 2-dimensional array of NicEntries.*/
-    typedef std::vector<RowVector> NicMatrix;
+    using NicMatrix = std::vector<RowVector>;
     /** @brief Type for 3-dimensional array of NicEntries.*/
-    typedef std::vector<NicMatrix> NicCube;
+    using NicCube = std::vector<NicMatrix>;
 
     /**
      * @brief Register of all nics
@@ -346,7 +345,8 @@ protected:
      * @param oldPos the old position of the nic
      * @param newPos the new position of the nic
      */
-    virtual void updateConnections(int nicID, const Coord* oldPos, const Coord* newPos);
+    virtual void updateConnections(int nicID, Coord oldPos, Coord newPos);
+
     /**
      * @brief Check if the two nic's are in range.
      *
@@ -360,10 +360,10 @@ protected:
     virtual bool isInRange(NicEntries::mapped_type pFromNic, NicEntries::mapped_type pToNic);
 
 public:
-    virtual ~BaseConnectionManager();
+    ~BaseConnectionManager() override;
 
     /** @brief Needs two initialization stages.*/
-    virtual int numInitStages() const
+    int numInitStages() const override
     {
         return 2;
     }
@@ -372,7 +372,7 @@ public:
      * @brief Reads init parameters and calculates a maximal interference
      * distance
      **/
-    virtual void initialize(int stage);
+    void initialize(int stage) override;
 
     /**
      * @brief Registers a nic to have its connections managed by ConnectionManager.
@@ -380,7 +380,7 @@ public:
      * If you want to do your own stuff at the registration of a nic see
      * "registerNicExt()".
      */
-    bool registerNic(cModule* nic, ChannelAccess* chAccess, const Coord* nicPos);
+    bool registerNic(cModule* nic, ChannelAccess* chAccess, Coord nicPos, Heading heading);
 
     /**
      * @brief Unregisters a NIC such that its connections aren't managed by the CM
@@ -397,7 +397,7 @@ public:
     bool unregisterNic(cModule* nic);
 
     /** @brief Updates the position information of a registered nic.*/
-    void updateNicPos(int nicID, const Coord* newPos);
+    void updateNicPos(int nicID, Coord newPos, Heading heading);
 
     /** @brief Returns the ingates of all nics in range*/
     const NicEntry::GateList& getGateList(int nicID) const;
@@ -407,5 +407,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif /*BASECONNECTIONMANAGER_H_*/

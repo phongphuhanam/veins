@@ -5,15 +5,15 @@
 using namespace Veins;
 using Veins::AirFrame;
 
-#define debugEV EV << "PhyLayer(BreakpointPathlossModel): "
-
-void BreakpointPathlossModel::filterSignal(Signal* signal, const Coord& sendersPos, const Coord& receiverPos)
+void BreakpointPathlossModel::filterSignal(Signal* signal)
 {
+    auto senderPos = signal->getSenderPoa().pos.getPositionAt();
+    auto receiverPos = signal->getReceiverPoa().pos.getPositionAt();
 
     /** Calculate the distance factor */
-    double distance = useTorus ? receiverPos.sqrTorusDist(sendersPos, playgroundSize) : receiverPos.sqrdist(sendersPos);
+    double distance = useTorus ? receiverPos.sqrTorusDist(senderPos, playgroundSize) : receiverPos.sqrdist(senderPos);
     distance = sqrt(distance);
-    debugEV << "distance is: " << distance << endl;
+    EV_TRACE << "distance is: " << distance << endl;
 
     if (distance <= 1.0) {
         // attenuation is negligible
@@ -35,11 +35,9 @@ void BreakpointPathlossModel::filterSignal(Signal* signal, const Coord& sendersP
         attenuation = attenuation * pow(distance / breakpointDistance, alpha2);
     }
     attenuation = 1 / attenuation;
-    debugEV << "attenuation is: " << attenuation << endl;
+    EV_TRACE << "attenuation is: " << attenuation << endl;
 
-    if (debug) {
-        pathlosses.record(10 * log10(attenuation)); // in dB
-    }
+    pathlosses.record(10 * log10(attenuation)); // in dB
 
-    signal->addUniformAttenuation(attenuation);
+    *signal *= attenuation;
 }

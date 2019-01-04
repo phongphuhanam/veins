@@ -1,10 +1,9 @@
-#ifndef CHANNELINFO_H_
-#define CHANNELINFO_H_
+#pragma once
 
 #include <list>
-#include <omnetpp.h>
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/messages/AirFrame_m.h"
 
 using Veins::AirFrame;
@@ -40,13 +39,13 @@ namespace Veins {
  *
  * @ingroup phyLayer
  */
-class MIXIM_API ChannelInfo {
+class VEINS_API ChannelInfo {
 
 protected:
     /** @brief Type for a pair of an AirFrame and a simulation time.*/
     typedef std::pair<simtime_t, AirFrame*> AirFrameTimePair;
     /** @brief Type for a list of AirFrames and a simulation time.*/
-    typedef std::list<AirFrameTimePair> AirFrameTimeList;
+    using AirFrameTimeList = std::list<AirFrameTimePair>;
     /**
      * The AirFrames are stored in a Matrix with start- and end time as
      * dimensions.
@@ -124,7 +123,7 @@ protected:
          */
         AirFrame* next()
         {
-            if (endIt == intervals->end()) return 0;
+            if (endIt == intervals->end()) return nullptr;
 
             // "alreadyNext" indicates that some previous iterator function has
             // already increased the intern iterators to a yet unchecked values.
@@ -148,12 +147,12 @@ protected:
                 }
 
                 endIt++;
-                if (endIt == intervals->end()) return 0;
+                if (endIt == intervals->end()) return nullptr;
 
                 startIt = endIt->second.begin();
             }
 
-            return 0;
+            return nullptr;
         }
     };
 
@@ -189,8 +188,8 @@ protected:
          */
         void eraseAirFrame()
         {
-            assert(endIt != intervals->end());
-            assert(startIt != endIt->second.end());
+            ASSERT(endIt != intervals->end());
+            ASSERT(startIt != endIt->second.end());
 
             // erase AirFrame from list
             startIt = endIt->second.erase(startIt);
@@ -249,7 +248,7 @@ public:
      *
      * Used as out type for "getAirFrames" method.
      */
-    typedef std::list<AirFrame*> AirFrameVector;
+    using AirFrameVector = std::list<AirFrame*>;
 
 protected:
     /**
@@ -384,7 +383,7 @@ public:
      */
     simtime_t getEarliestInfoPoint()
     {
-        assert(!isChannelEmpty() || earliestInfoPoint == -1);
+        ASSERT(!isChannelEmpty() || earliestInfoPoint == -1);
 
         return earliestInfoPoint;
     }
@@ -445,12 +444,10 @@ public:
      */
     bool isChannelEmpty() const
     {
-        assert(recordStartTime != -1 || activeAirFrames.empty() == airFrameStarts.empty());
+        ASSERT(recordStartTime != -1 || activeAirFrames.empty() == airFrameStarts.empty());
 
         return airFrameStarts.empty();
     }
 };
 
 } // namespace Veins
-
-#endif /*CHANNELINFO_H_*/

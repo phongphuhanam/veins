@@ -5,10 +5,10 @@
  *      Author: karl
  */
 
-#ifndef BATTERYACCESS_H_
-#define BATTERYACCESS_H_
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include "veins/veins.h"
+
 #include "veins/base/modules/BaseModule.h"
 #include "veins/base/modules/BaseBattery.h"
 
@@ -22,7 +22,7 @@ namespace Veins {
  * @ingroup baseModules
  * @author Karl Wessel
  */
-class MIXIM_API BatteryAccess : public BaseModule {
+class VEINS_API BatteryAccess : public BaseModule {
 protected:
     /** @brief Stores pointer to the battery module. */
     BaseBattery* battery;
@@ -68,5 +68,3 @@ public:
 };
 
 } // namespace Veins
-
-#endif /* BATTERYACCESS_H_ */

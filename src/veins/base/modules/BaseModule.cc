@@ -20,24 +20,12 @@
 
 #include "veins/base/modules/BaseModule.h"
 
-#include <cassert>
-
 #include "veins/base/utils/FindModule.h"
-
-#ifndef debugEV
-#define debugEV_clear EV
-#define debugEV EV << logName() << "::" << getClassName() << ": "
-#endif
-
-#ifndef coreEV
-#define coreEV_clear EV
-#define coreEV EV << logName() << "::" << getClassName() << ": "
-#endif
 
 using namespace Veins;
 
 // Could not initialize simsignal_t it here!? I got the POST_MODEL_CHANGE id!?
-const simsignalwrap_t BaseModule::catHostStateSignal = simsignalwrap_t(MIXIM_SIGNAL_HOSTSTATE_NAME);
+const simsignal_t BaseModule::catHostStateSignal = registerSignal("org.car2x.veins.base.utils.hoststate");
 
 BaseModule::BaseModule()
     : cSimpleModule()
@@ -60,7 +48,6 @@ void BaseModule::initialize(int stage)
 {
     if (stage == 0) {
         notAffectedByHostState = hasPar("notAffectedByHostState") && par("notAffectedByHostState").boolValue();
-        hasPar("debug") ? debug = par("debug").boolValue() : debug = true;
         findHost()->subscribe(catHostStateSignal, this);
     }
 }

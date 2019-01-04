@@ -21,21 +21,15 @@
 
 #include "veins/base/connectionManager/NicEntryDebug.h"
 
-#include <cassert>
-
 #include "veins/base/connectionManager/ChannelAccess.h"
 #include "veins/base/utils/FindModule.h"
-
-#ifndef nicEV
-#define nicEV EV_DEBUG << "NicEntry: "
-#endif
 
 using std::endl;
 using namespace Veins;
 
 void NicEntryDebug::connectTo(NicEntry* other)
 {
-    nicEV << "connecting nic #" << nicId << " and #" << other->nicId << endl;
+    EV_TRACE << "connecting nic #" << nicId << " and #" << other->nicId << endl;
 
     NicEntryDebug* otherNic = (NicEntryDebug*) other;
 
@@ -46,7 +40,7 @@ void NicEntryDebug::connectTo(NicEntry* other)
 
 void NicEntryDebug::disconnectFrom(NicEntry* other)
 {
-    nicEV << "disconnecting nic #" << nicId << " and #" << other->nicId << endl;
+    EV_TRACE << "disconnecting nic #" << nicId << " and #" << other->nicId << endl;
 
     NicEntryDebug* otherNic = (NicEntryDebug*) other;
 
@@ -83,7 +77,7 @@ int NicEntryDebug::collectGates(const char* pattern, GateStack& gates)
         if (hostGate->isConnectedOutside()) {
             throw cRuntimeError("Gate %s is still connected but not registered with this NicEntry. Either the last NicEntry for this NIC did not clean up correctly or another gate creation module is interfering with this one!", gateName);
         }
-        assert(hostGate->isConnectedInside());
+        ASSERT(hostGate->isConnectedInside());
         gates.push_back(hostGate);
 
         ++i;
@@ -98,10 +92,10 @@ void NicEntryDebug::collectFreeGates()
     if (!checkFreeGates) return;
 
     inCnt = collectGates("in%d-%d", freeInGates);
-    nicEV << "found " << inCnt << " already existing usable in-gates." << endl;
+    EV_TRACE << "found " << inCnt << " already existing usable in-gates." << endl;
 
     outCnt = collectGates("out%d-%d", freeOutGates);
-    nicEV << "found " << inCnt << " already existing usable out-gates." << endl;
+    EV_TRACE << "found " << inCnt << " already existing usable out-gates." << endl;
 
     checkFreeGates = false;
 }
@@ -146,8 +140,8 @@ cGate* NicEntryDebug::requestInGate(void)
         cGate* phyGate;
 
         // to avoid unnecessary dynamic_casting we check for a "phy"-named submodule first
-        if ((phyModule = dynamic_cast<ChannelAccess*>(nicPtr->getSubmodule("phy"))) == NULL) phyModule = FindModule<ChannelAccess*>::findSubModule(nicPtr);
-        assert(phyModule != 0);
+        if ((phyModule = dynamic_cast<ChannelAccess*>(nicPtr->getSubmodule("phy"))) == nullptr) phyModule = FindModule<ChannelAccess*>::findSubModule(nicPtr);
+        ASSERT(phyModule != nullptr);
 
         // create a new gate for the phy module
         phyModule->addGate(gateName, cGate::INPUT);
@@ -200,8 +194,8 @@ cGate* NicEntryDebug::requestOutGate(void)
         cGate* phyGate;
 
         // to avoid unnecessary dynamic_casting we check for a "phy"-named submodule first
-        if ((phyModule = dynamic_cast<ChannelAccess*>(nicPtr->getSubmodule("phy"))) == NULL) phyModule = FindModule<ChannelAccess*>::findSubModule(nicPtr);
-        assert(phyModule != 0);
+        if ((phyModule = dynamic_cast<ChannelAccess*>(nicPtr->getSubmodule("phy"))) == nullptr) phyModule = FindModule<ChannelAccess*>::findSubModule(nicPtr);
+        ASSERT(phyModule != nullptr);
 
         // create a new gate for the phy module
         phyModule->addGate(gateName, cGate::OUTPUT);

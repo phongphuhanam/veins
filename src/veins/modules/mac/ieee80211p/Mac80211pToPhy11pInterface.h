@@ -18,10 +18,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#ifndef MAC80211PTOPHY11PINTERFACE_H_
-#define MAC80211PTOPHY11PINTERFACE_H_
+#pragma once
 
 #include "veins/base/phyLayer/MacToPhyInterface.h"
+#include "veins/modules/utility/ConstsPhy.h"
+#include "veins/modules/utility/Consts80211p.h"
 
 namespace Veins {
 
@@ -41,14 +42,13 @@ public:
         CHANNEL_BUSY,
     };
 
-public:
-    virtual void changeListeningFrequency(double freq) = 0;
+    virtual ~Mac80211pToPhy11pInterface() = default;
+
+    virtual void changeListeningChannel(Channel channel) = 0;
     virtual void setCCAThreshold(double ccaThreshold_dBm) = 0;
     virtual void notifyMacAboutRxStart(bool enable) = 0;
     virtual void requestChannelStatusIfIdle() = 0;
-    virtual ~Mac80211pToPhy11pInterface(){};
+    virtual simtime_t getFrameDuration(int payloadLengthBits, MCS mcs) const = 0;
 };
 
 } // namespace Veins
-
-#endif /* MAC80211PTOPHY11PINTERFACE_H_ */

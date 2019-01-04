@@ -27,21 +27,12 @@
 
 #include "veins/base/connectionManager/ChannelAccess.h"
 
-#include <cassert>
-
 #include "veins/base/utils/FindModule.h"
 #include "veins/base/modules/BaseWorldUtility.h"
 #include "veins/base/connectionManager/BaseConnectionManager.h"
 
-#ifndef coreEV
-#define coreEV_clear EV
-#define coreEV EV << logName() << "::" << getClassName() << ": "
-#endif
-
 using std::endl;
 using namespace Veins;
-
-const simsignalwrap_t ChannelAccess::mobilityStateChangedSignal = simsignalwrap_t(MIXIM_SIGNAL_MOBILITY_CHANGE_NAME);
 
 BaseConnectionManager* ChannelAccess::getConnectionManager(cModule* nic)
 {
@@ -61,13 +52,27 @@ void ChannelAccess::initialize(int stage)
     BatteryAccess::initialize(stage);
 
     if (stage == 0) {
-        hasPar("coreDebug") ? coreDebug = par("coreDebug").boolValue() : coreDebug = false;
+        if (hasPar("antennaOffsetX")) {
+            antennaOffset.x = par("antennaOffsetX").doubleValue();
+        }
 
-        findHost()->subscribe(mobilityStateChangedSignal, this);
+        if (hasPar("antennaOffsetY")) {
+            antennaOffset.y = par("antennaOffsetY").doubleValue();
+        }
+
+        if (hasPar("antennaOffsetZ")) {
+            antennaOffset.z = par("antennaOffsetZ").doubleValue();
+        }
+
+        if (hasPar("antennaOffsetYaw")) {
+            antennaOffsetYaw = par("antennaOffsetYaw").doubleValue();
+        }
+
+        findHost()->subscribe(BaseMobility::mobilityStateChangedSignal, this);
 
         cModule* nic = getParentModule();
         cc = getConnectionManager(nic);
-        if (cc == NULL) error("Could not find connectionmanager module");
+        if (cc == nullptr) error("Could not find connectionmanager module");
         isRegistered = false;
     }
 
@@ -101,13 +106,13 @@ void ChannelAccess::sendToChannel(cPacket* msg)
             sendDirect(msg, delay, msg->getDuration(), i->second->getOwnerModule(), radioEnd);
         }
         else {
-            coreEV << "Nic is not connected to any gates!" << endl;
+            EV_WARN << "Nic is not connected to any gates!" << endl;
             delete msg;
         }
     }
     else {
         // use our stuff
-        coreEV << "sendToChannel: sending to gates\n";
+        EV_TRACE << "sendToChannel: sending to gates\n";
         if (i != gateList.end()) {
             simtime_t delay = SIMTIME_ZERO;
             for (; i != --gateList.end(); ++i) {
@@ -122,7 +127,7 @@ void ChannelAccess::sendToChannel(cPacket* msg)
             sendDelayed(msg, delay, i->second);
         }
         else {
-            coreEV << "Nic is not connected to any gates!" << endl;
+            EV_WARN << "Nic is not connected to any gates!" << endl;
             delete msg;
         }
     }
@@ -136,30 +141,33 @@ simtime_t ChannelAccess::calculatePropagationDelay(const NicEntry* nic)
     ChannelAccess* const receiverModule = nic->chAccess;
     // const simtime_t_cref sStart         = simTime();
 
-    assert(senderModule);
-    assert(receiverModule);
+    ASSERT(senderModule);
+    ASSERT(receiverModule);
 
     /** claim the Move pattern of the sender from the Signal */
-    Coord sendersPos = senderModule->getMobilityModule()->getCurrentPosition(/*sStart*/);
-    Coord receiverPos = receiverModule->getMobilityModule()->getCurrentPosition(/*sStart*/);
+    Coord senderPos = senderModule->antennaPosition.getPositionAt();
+    Coord receiverPos = receiverModule->antennaPosition.getPositionAt();
 
     // this time-point is used to calculate the distance between sending and receiving host
-    return receiverPos.distance(sendersPos) / BaseWorldUtility::speedOfLight();
+    return receiverPos.distance(senderPos) / BaseWorldUtility::speedOfLight();
 }
 
 void ChannelAccess::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
-    if (signalID == mobilityStateChangedSignal) {
+    if (signalID == BaseMobility::mobilityStateChangedSignal) {
         ChannelMobilityPtrType const mobility = check_and_cast<ChannelMobilityPtrType>(obj);
-        Coord pos = mobility->getCurrentPosition();
+
+        auto heading = Heading::fromCoord(mobility->getCurrentOrientation());
+        antennaPosition = AntennaPosition(getId(), mobility->getPositionAt(simTime()) + antennaOffset.rotatedYaw(-heading.getRad()), mobility->getCurrentSpeed(), simTime());
+        antennaHeading = Heading(heading.getRad() + antennaOffsetYaw);
 
         if (isRegistered) {
-            cc->updateNicPos(getParentModule()->getId(), &pos);
+            cc->updateNicPos(getParentModule()->getId(), antennaPosition.getPositionAt(), antennaHeading);
         }
         else {
             // register the nic with ConnectionManager
             // returns true, if sendDirect is used
-            useSendDirect = cc->registerNic(getParentModule(), this, &pos);
+            useSendDirect = cc->registerNic(getParentModule(), this, antennaPosition.getPositionAt(), antennaHeading);
             isRegistered = true;
         }
     }

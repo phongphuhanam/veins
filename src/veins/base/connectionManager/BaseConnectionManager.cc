@@ -1,15 +1,9 @@
 #include "veins/base/connectionManager/BaseConnectionManager.h"
 
-#include <cassert>
-
 #include "veins/base/connectionManager/NicEntryDebug.h"
 #include "veins/base/connectionManager/NicEntryDirect.h"
 #include "veins/base/modules/BaseWorldUtility.h"
 #include "veins/base/utils/FindModule.h"
-
-#ifndef ccEV
-#define ccEV EV_DEBUG << getName() << ": "
-#endif
 
 using namespace Veins;
 
@@ -28,7 +22,7 @@ static double dist(double coord1, double coord2, double size)
         // NOTE: event if size is zero
         return 0;
     else {
-        assert(size != 0);
+        ASSERT(size != 0);
         double dist = FWMath::modulo(difference, size);
         return std::min(dist, size - dist);
     }
@@ -48,18 +42,13 @@ void BaseConnectionManager::initialize(int stage)
     // BaseModule::initialize(stage);
 
     if (stage == 0) {
-        if (hasPar("coreDebug"))
-            coreDebug = par("coreDebug").boolValue();
-        else
-            coreDebug = false;
-
         drawMIR = hasPar("drawMaxIntfDist") ? par("drawMaxIntfDist").boolValue() : false;
 
-        ccEV << "initializing BaseConnectionManager\n";
+        EV_TRACE << "initializing BaseConnectionManager\n";
 
         BaseWorldUtility* world = FindModule<BaseWorldUtility*>::findGlobalModule();
 
-        assert(world != 0);
+        ASSERT(world != nullptr);
 
         playgroundSize = world->getPgs();
         useTorus = world->useTorus();
@@ -108,7 +97,7 @@ void BaseConnectionManager::initialize(int stage)
         for (int i = 0; i < gridDim.x; ++i) { // fill the grid with copies of
             nicGrid.push_back(matrix); // the matrix.
         }
-        ccEV << " using " << gridDim.x << "x" << gridDim.y << "x" << gridDim.z << " grid" << endl;
+        EV_TRACE << " using " << gridDim.x << "x" << gridDim.y << "x" << gridDim.z << " grid" << endl;
 
         // step 3 -    calculate the factor which maps the coordinate of a node
         //            to the grid cell
@@ -130,15 +119,15 @@ void BaseConnectionManager::initialize(int stage)
 
         // findDistance (equals cell size) has to be greater or equal
         // maxInt-distance
-        assert(findDistance.x >= maxInterferenceDistance);
-        assert(findDistance.y >= maxInterferenceDistance);
-        assert(findDistance.z >= maxInterferenceDistance);
+        ASSERT(findDistance.x >= maxInterferenceDistance);
+        ASSERT(findDistance.y >= maxInterferenceDistance);
+        ASSERT(findDistance.z >= maxInterferenceDistance);
 
         // playGroundSize has to be part of the playGround
-        assert(GridCoord(*playgroundSize, findDistance).x == gridDim.x - 1);
-        assert(GridCoord(*playgroundSize, findDistance).y == gridDim.y - 1);
-        assert(GridCoord(*playgroundSize, findDistance).z == gridDim.z - 1);
-        ccEV << "findDistance is " << findDistance.info() << endl;
+        ASSERT(GridCoord(*playgroundSize, findDistance).x == gridDim.x - 1);
+        ASSERT(GridCoord(*playgroundSize, findDistance).y == gridDim.y - 1);
+        ASSERT(GridCoord(*playgroundSize, findDistance).z == gridDim.z - 1);
+        EV_TRACE << "findDistance is " << findDistance.info() << endl;
     }
     else if (stage == 1) {
     }
@@ -149,10 +138,10 @@ BaseConnectionManager::GridCoord BaseConnectionManager::getCellForCoordinate(con
     return GridCoord(c, findDistance);
 }
 
-void BaseConnectionManager::updateConnections(int nicID, const Coord* oldPos, const Coord* newPos)
+void BaseConnectionManager::updateConnections(int nicID, Coord oldPos, Coord newPos)
 {
-    GridCoord oldCell = getCellForCoordinate(*oldPos);
-    GridCoord newCell = getCellForCoordinate(*newPos);
+    GridCoord oldCell = getCellForCoordinate(oldPos);
+    GridCoord newCell = getCellForCoordinate(newPos);
 
     checkGrid(oldCell, newCell, nicID);
 }
@@ -168,7 +157,7 @@ void BaseConnectionManager::registerNicExt(int nicID)
 
     GridCoord cell = getCellForCoordinate(nicEntry->pos);
 
-    ccEV << " registering (ext) nic at loc " << cell.info() << std::endl;
+    EV_TRACE << " registering (ext) nic at loc " << cell.info() << std::endl;
 
     // add to matrix
     NicEntries& cellEntries = getCellEntries(cell);
@@ -207,8 +196,8 @@ void BaseConnectionManager::checkGrid(BaseConnectionManager::GridCoord& oldCell,
     }
 
     GridCoord* c = gridUnion.next();
-    while (c != 0) {
-        ccEV << "Update cons in [" << c->info() << "]" << endl;
+    while (c != nullptr) {
+        EV_TRACE << "Update cons in [" << c->info() << "]" << endl;
         updateNicConnections(getCellEntries(*c), nic);
         c = gridUnion.next();
     }
@@ -288,40 +277,41 @@ void BaseConnectionManager::updateNicConnections(NicEntries& nmap, BaseConnectio
         if (inRange && !connected) {
             // nodes within communication range: connect
             // nodes within communication range && not yet connected
-            ccEV << "nic #" << id << " and #" << nic_i->nicId << " are in range" << endl;
+            EV_TRACE << "nic #" << id << " and #" << nic_i->nicId << " are in range" << endl;
             nic->connectTo(nic_i);
             nic_i->connectTo(nic);
         }
         else if (!inRange && connected) {
             // out of range: disconnect
             // out of range, and still connected
-            ccEV << "nic #" << id << " and #" << nic_i->nicId << " are NOT in range" << endl;
+            EV_TRACE << "nic #" << id << " and #" << nic_i->nicId << " are NOT in range" << endl;
             nic->disconnectFrom(nic_i);
             nic_i->disconnectFrom(nic);
         }
     }
 }
 
-bool BaseConnectionManager::registerNic(cModule* nic, ChannelAccess* chAccess, const Coord* nicPos)
+bool BaseConnectionManager::registerNic(cModule* nic, ChannelAccess* chAccess, Coord nicPos, Heading heading)
 {
-    assert(nic != 0);
+    ASSERT(nic != nullptr);
 
     int nicID = nic->getId();
-    ccEV << " registering nic #" << nicID << endl;
+    EV_TRACE << " registering nic #" << nicID << endl;
 
     // create new NicEntry
     NicEntries::mapped_type nicEntry;
 
     if (sendDirect)
-        nicEntry = new NicEntryDirect(coreDebug);
+        nicEntry = new NicEntryDirect(this);
     else
-        nicEntry = new NicEntryDebug(coreDebug);
+        nicEntry = new NicEntryDebug(this);
 
     // fill nicEntry
     nicEntry->nicPtr = nic;
     nicEntry->nicId = nicID;
     nicEntry->hostId = nic->getParentModule()->getId();
-    nicEntry->pos = *nicPos;
+    nicEntry->pos = nicPos;
+    nicEntry->heading = heading;
     nicEntry->chAccess = chAccess;
 
     // add to map
@@ -340,15 +330,15 @@ bool BaseConnectionManager::registerNic(cModule* nic, ChannelAccess* chAccess, c
 
 bool BaseConnectionManager::unregisterNic(cModule* nicModule)
 {
-    assert(nicModule != 0);
+    ASSERT(nicModule != nullptr);
 
     // find nicEntry
     int nicID = nicModule->getId();
-    ccEV << " unregistering nic #" << nicID << endl;
+    EV_TRACE << " unregistering nic #" << nicID << endl;
 
     // we assume that the module was previously registered with this CM
     // TODO: maybe change this to an omnet-error instead of an assertion
-    assert(nics.find(nicID) != nics.end());
+    ASSERT(nics.find(nicID) != nics.end());
     NicEntries::mapped_type nicEntry = nics[nicID];
 
     // get all affected grid squares
@@ -363,8 +353,8 @@ bool BaseConnectionManager::unregisterNic(cModule* nicModule)
 
     // disconnect from all NICs in these grid squares
     GridCoord* c = gridUnion.next();
-    while (c != 0) {
-        ccEV << "Update cons in [" << c->info() << "]" << endl;
+    while (c != nullptr) {
+        EV_TRACE << "Update cons in [" << c->info() << "]" << endl;
         NicEntries& nmap = getCellEntries(*c);
         for (NicEntries::iterator i = nmap.begin(); i != nmap.end(); ++i) {
             NicEntries::mapped_type other = i->second;
@@ -388,15 +378,16 @@ bool BaseConnectionManager::unregisterNic(cModule* nicModule)
     return true;
 }
 
-void BaseConnectionManager::updateNicPos(int nicID, const Coord* newPos)
+void BaseConnectionManager::updateNicPos(int nicID, Coord newPos, Heading heading)
 {
     NicEntries::iterator ItNic = nics.find(nicID);
     if (ItNic == nics.end()) error("No nic with this ID (%d) is registered with this ConnectionManager.", nicID);
 
     Coord oldPos = ItNic->second->pos;
-    ItNic->second->pos = *newPos;
+    ItNic->second->pos = newPos;
+    ItNic->second->heading = heading;
 
-    updateConnections(nicID, &oldPos, newPos);
+    updateConnections(nicID, oldPos, newPos);
 }
 
 const NicEntry::GateList& BaseConnectionManager::getGateList(int nicID) const

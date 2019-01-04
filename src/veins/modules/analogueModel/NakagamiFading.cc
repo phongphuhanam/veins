@@ -21,28 +21,27 @@
 
 #include "veins/modules/analogueModel/NakagamiFading.h"
 
-#define M_CLOSE 1.5
-#define M_FAR 0.75
-#define DIS_THRESHOLD 80
-
-// #define debugEV (ev.isDisabled()||!debug) ? ev : ev << "PhyLayer(NakagamiFading): "
-#define debugEV std::cerr << "PhyLayer(NakagamiFading): "
-
 using namespace Veins;
 
 /**
  * Simple Nakagami-m fading (based on a constant factor across all time and frequencies).
  */
-void NakagamiFading::filterSignal(Signal* signal, const Coord& senderPos, const Coord& receiverPos)
+void NakagamiFading::filterSignal(Signal* signal)
 {
+    auto senderPos = signal->getSenderPoa().pos.getPositionAt();
+    auto receiverPos = signal->getReceiverPoa().pos.getPositionAt();
 
-    debugEV << "Add NakagamiFading ..." << endl;
+    const double M_CLOSE = 1.5;
+    const double M_FAR = 0.75;
+    const double DIS_THRESHOLD = 80;
+
+    EV_TRACE << "Add NakagamiFading ..." << endl;
 
     // get average TX power
     // FIXME: really use average power (instead of max)
-    debugEV << "Finding max TX power ..." << endl;
-    double sendPower_mW = signal->getRelativeMax();
-    debugEV << "TX power is " << FWMath::mW2dBm(sendPower_mW) << " dBm" << endl;
+    EV_TRACE << "Finding max TX power ..." << endl;
+    double sendPower_mW = signal->getMax();
+    EV_TRACE << "TX power is " << FWMath::mW2dBm(sendPower_mW) << " dBm" << endl;
 
     // get m value
     double m = this->m;
@@ -60,11 +59,11 @@ void NakagamiFading::filterSignal(Signal* signal, const Coord& senderPos, const 
     if (recvPower_mW > sendPower_mW) {
         recvPower_mW = sendPower_mW;
     }
-    debugEV << "RX power is " << FWMath::mW2dBm(recvPower_mW) << " dBm" << endl;
+    EV_TRACE << "RX power is " << FWMath::mW2dBm(recvPower_mW) << " dBm" << endl;
 
     // infer average attenuation
     double factor = recvPower_mW / sendPower_mW;
-    debugEV << "factor is: " << factor << " (i.e. " << FWMath::mW2dBm(factor) << " dB)" << endl;
+    EV_TRACE << "factor is: " << factor << " (i.e. " << FWMath::mW2dBm(factor) << " dB)" << endl;
 
-    signal->addUniformAttenuation(factor);
+    *signal *= factor;
 }

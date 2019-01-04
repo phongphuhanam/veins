@@ -1,16 +1,18 @@
-#ifndef ANALOGUEMODEL_
-#define ANALOGUEMODEL_
+#pragma once
 
-#include "veins/base/utils/MiXiMDefs.h"
+#include <memory>
+#include <vector>
+
+#include "veins/veins.h"
+
+#include "veins/base/utils/AntennaPosition.h"
 #include "veins/base/utils/Coord.h"
-
-#include "veins/base/toolbox/Signal.h"
+#include "veins/modules/utility/HasLogProxy.h"
 
 namespace Veins {
 
 class AirFrame;
-
-using Veins::AirFrame;
+class Signal;
 
 /**
  * @brief Interface for the analogue models of the physical layer.
@@ -21,9 +23,14 @@ using Veins::AirFrame;
  *
  * @ingroup analogueModels
  */
-class MIXIM_API AnalogueModel {
+class VEINS_API AnalogueModel : public HasLogProxy {
 
 public:
+    AnalogueModel(cComponent* owner)
+        : HasLogProxy(owner)
+    {
+    }
+
     virtual ~AnalogueModel()
     {
     }
@@ -35,10 +42,8 @@ public:
      * over time to the Signal.
      *
      * @param signal        The signal to filter.
-     * @param sendersPos    The position of the frame sender.
-     * @param receiverPos    The position of frame receiver.
      */
-    virtual void filterSignal(Signal* signal, const Coord& sendersPos, const Coord& receiverPos) = 0;
+    virtual void filterSignal(Signal* signal) = 0;
 
     /**
      * If the model never increases the power level of any signal given to filterSignal, it returns true here.
@@ -50,6 +55,6 @@ public:
     }
 };
 
-} // namespace Veins
+using AnalogueModelList = std::vector<std::unique_ptr<AnalogueModel>>;
 
-#endif /*ANALOGUEMODEL_*/
+} // namespace Veins
