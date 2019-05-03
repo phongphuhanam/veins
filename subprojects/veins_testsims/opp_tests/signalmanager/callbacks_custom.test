@@ -1,0 +1,82 @@
+%description
+Ensure CallbackListeners are called.
+
+%file: test.ned
+
+simple Module {
+    @signal[mySignal](type=CustomPayload);
+}
+
+network Test
+{
+    submodules:
+        node: Module;
+}
+
+
+%file: test.cc
+#include "veins/veins.h"
+#include "veins/modules/utility/SignalManager.h"
+
+namespace @TESTNAME@ {
+
+class CustomPayload: public cObject {
+};
+
+Register_Class(CustomPayload);
+
+using payloadType = cObject*;
+
+void staticCallback(veins::SignalPayload<payloadType> signalPayload)
+{
+    EV << "Static callback that does not use the payload\n";
+}
+
+struct functorCallback {
+    void operator()(veins::SignalPayload<payloadType> signalPayload)
+    {
+        EV << "Functor callback that does not use the payload\n";
+    }
+};
+
+auto lambdaCallback = [](veins::SignalPayload<payloadType> signalPayload) {
+    EV << "Lambda that does not use the payload\n";
+};
+
+class Module : public cSimpleModule {
+public:
+    static const simsignal_t mySignal;
+    Module()
+        : cSimpleModule() {};
+    void initialize(int stage) override;
+protected:
+    veins::SignalManager signalManager;
+	std::unique_ptr<CustomPayload> customPayload = veins::make_unique<CustomPayload>();
+};
+
+const simsignal_t Module::mySignal = registerSignal("mySignal");
+
+Define_Module(Module);
+
+void Module::initialize(int stage)
+{
+    auto localLambdaCallback = [this](veins::SignalPayload<payloadType> signalPayload) {
+        EV << "Local lambda that does not use the payload\n";
+    };
+    // setup callback with signal manager
+    signalManager.subscribeCallback(getSystemModule(), Module::mySignal, lambdaCallback);
+    signalManager.subscribeCallback(getSystemModule(), Module::mySignal, localLambdaCallback);
+    signalManager.subscribeCallback(getSystemModule(), Module::mySignal, staticCallback);
+    signalManager.subscribeCallback(getSystemModule(), Module::mySignal, functorCallback());
+
+    // emit message to all callbacks
+    emit(Module::mySignal, customPayload.get());
+}
+
+} // namespace @TESTNAME@
+
+%contains: stdout
+Lambda that does not use the payload
+Local lambda that does not use the payload
+Static callback that does not use the payload
+Functor callback that does not use the payload

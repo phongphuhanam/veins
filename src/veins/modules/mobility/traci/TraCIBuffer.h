@@ -5,16 +5,18 @@
 
 #include "veins/veins.h"
 
-namespace Veins {
+#include "veins/modules/mobility/traci/TraCIConstants.h"
+
+namespace veins {
 
 struct TraCICoord;
 
-bool isBigEndian();
+bool VEINS_API isBigEndian();
 
 /**
  * Byte-buffer that stores values in TraCI byte-order
  */
-class TraCIBuffer {
+class VEINS_API TraCIBuffer {
 public:
     TraCIBuffer();
     TraCIBuffer(std::string buf);
@@ -113,9 +115,12 @@ public:
     std::string str() const;
     std::string hexStr() const;
 
-    static void setTimeAsDouble(bool val)
+    static void setTimeType(uint8_t val)
     {
-        timeAsDouble = val;
+        if (val != TraCIConstants::TYPE_INTEGER && val != TraCIConstants::TYPE_DOUBLE) {
+            throw cRuntimeError("Invalid time data type");
+        }
+        timeAsDouble = val == TraCIConstants::TYPE_DOUBLE;
     }
 
 private:
@@ -127,11 +132,11 @@ private:
 template <>
 std::vector<std::string> TraCIBuffer::readTypeChecked(int expectedTraCIType);
 template <>
-void TraCIBuffer::write(std::string inv);
+void VEINS_API TraCIBuffer::write(std::string inv);
 template <>
 void TraCIBuffer::write(TraCICoord inv);
 template <>
-std::string TraCIBuffer::read();
+std::string VEINS_API TraCIBuffer::read();
 template <>
 TraCICoord TraCIBuffer::read();
 template <>
@@ -139,4 +144,4 @@ void TraCIBuffer::write(simtime_t o);
 template <>
 simtime_t TraCIBuffer::read();
 
-} // namespace Veins
+} // namespace veins

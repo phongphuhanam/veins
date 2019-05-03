@@ -12,13 +12,11 @@
 #include "veins/base/modules/BaseWorldUtility.h"
 #include "veins/base/connectionManager/BaseConnectionManager.h"
 
-using namespace Veins;
+using namespace veins;
 
 using std::unique_ptr;
 
-Define_Module(Veins::BasePhyLayer);
-
-Coord NoMobiltyPos = Coord::ZERO;
+Define_Module(veins::BasePhyLayer);
 
 // --Initialization----------------------------------
 

@@ -40,7 +40,7 @@
 #include "veins/modules/mobility/traci/VehicleSignal.h"
 #include "veins/modules/mobility/traci/TraCIRegionOfInterest.h"
 
-namespace Veins {
+namespace veins {
 
 class TraCICommandInterface;
 
@@ -61,7 +61,7 @@ class TraCICommandInterface;
  * @see TraCIScenarioManagerLaunchd
  *
  */
-class TraCIScenarioManager : public cSimpleModule {
+class VEINS_API TraCIScenarioManager : public cSimpleModule {
 public:
     static const simsignal_t traciInitializedSignal;
     static const simsignal_t traciModuleAddedSignal;
@@ -90,6 +90,11 @@ public:
         return commandIfc.get();
     }
 
+    TraCIConnection* getConnection() const
+    {
+        return connection.get();
+    }
+
     bool getAutoShutdownTriggered()
     {
         return autoShutdownTriggered;
@@ -100,7 +105,18 @@ public:
         return hosts;
     }
 
+    /**
+     * Predicate indicating a successful connection to the TraCI server.
+     *
+     * @note Once the connection has been established, this will return true even when the connection has been torn down again.
+     */
+    bool isUsable() const
+    {
+        return traciInitialized;
+    }
+
 protected:
+    bool traciInitialized = false; /**< Flag indicating whether the init_traci routine has been run. Note that it will change to false again once set, even during shutdown. */
     simtime_t connectAt; /**< when to connect to TraCI server (must be the initial timestep of the server) */
     simtime_t firstStepAt; /**< when to start synchronizing with the TraCI server (-1: immediately after connecting) */
     simtime_t updateInterval; /**< time interval of hosts' position updates */
@@ -119,6 +135,7 @@ protected:
 
     bool autoShutdown; /**< Shutdown module as soon as no more vehicles are in the simulation */
     double penetrationRate;
+    bool ignoreGuiCommands; /**< whether to ignore all TraCI commands that only make sense when the server has a graphical user interface */
     TraCIRegionOfInterest roi; /**< Can return whether a given position lies within the simulation's region of interest. Modules are destroyed and re-created as managed vehicles leave and re-enter the ROI */
     double areaSum;
 
@@ -176,7 +193,7 @@ protected:
     TypeMapping parseMappings(std::string parameter, std::string parameterName, bool allowEmpty = false);
 };
 
-class TraCIScenarioManagerAccess {
+class VEINS_API TraCIScenarioManagerAccess {
 public:
     TraCIScenarioManager* get()
     {
@@ -184,4 +201,4 @@ public:
     };
 };
 
-} // namespace Veins
+} // namespace veins

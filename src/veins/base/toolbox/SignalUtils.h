@@ -32,15 +32,10 @@
 #include "veins/base/phyLayer/Decider.h"
 #include "veins/base/toolbox/Signal.h"
 
-namespace Veins {
+namespace veins {
 namespace SignalUtils {
 
 using AirFrameVector = DeciderToPhyInterface::AirFrameVector;
-
-double getGlobalMax(simtime_t start, simtime_t end, const AirFrameVector& airFrames);
-
-double getGlobalMin(simtime_t start, simtime_t end, const AirFrameVector& airFrames);
-double getMinAtFreqIndex(simtime_t start, simtime_t end, const AirFrameVector& airFrames, size_t freqIndex, AirFrame* exclude);
 
 /**
  * @brief check if the summed power of interfererFrames's signals at freqIndex is below a given threshold.
@@ -56,7 +51,7 @@ double getMinAtFreqIndex(simtime_t start, simtime_t end, const AirFrameVector& a
  *   Each model is applied for all signals before the next check for the threshold is performed.
  *   This can be optimized to minimize the number of analog models needed to be applied.
  */
-bool isChannelPowerBelowThreshold(simtime_t now, AirFrameVector& interfererFrames, size_t freqIndex, double threshold, AirFrame* exclude = nullptr);
+bool VEINS_API isChannelPowerBelowThreshold(simtime_t now, AirFrameVector& interfererFrames, size_t freqIndex, double threshold, AirFrame* exclude = nullptr);
 
 /**
  * @brief return the minimal Signal to (Interference + Noise) Ratio at any data channel of signalFrame's signal
@@ -66,7 +61,7 @@ bool isChannelPowerBelowThreshold(simtime_t now, AirFrameVector& interfererFrame
  * This function ensures that all analogue models attached to the signal of each interfererFrame and the signalFrame are applied.
  * Only considers the given interval between [start, end) and assumes time-independent noise that is the same for all channels.
  */
-double getMinSINR(simtime_t start, simtime_t end, AirFrame* signalFrame, AirFrameVector& interfererFrames, double noise);
+double VEINS_API getMinSINR(simtime_t start, simtime_t end, AirFrame* signalFrame, AirFrameVector& interfererFrames, double noise);
 
 } // namespace SignalUtils
-} // namespace Veins
+} // namespace veins

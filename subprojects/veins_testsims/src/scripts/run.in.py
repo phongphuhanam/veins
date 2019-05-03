@@ -8,6 +8,7 @@ Runs Veins simulation in current directory
 
 import os
 import argparse
+import subprocess
 
 def relpath(s):
     veins_root = os.path.dirname(os.path.realpath(__file__))
@@ -24,6 +25,7 @@ if (len(omnet_args) > 0) and omnet_args[0] == '--':
 
 run_libs = [relpath(s) for s in run_libs]
 run_neds = [relpath(s) for s in run_neds] + ['.']
+run_imgs = [relpath(s) for s in run_imgs]
 
 opp_run = 'opp_run'
 if args.debug:
@@ -31,6 +33,7 @@ if args.debug:
 
 lib_flags = ['-l%s' % s for s in run_libs]
 ned_flags = ['-n' + ';'.join(run_neds)]
+img_flags = ['--image-path=' + ';'.join(run_imgs)]
 
 prefix = []
 if args.tool == 'lldb':
@@ -40,10 +43,13 @@ if args.tool == 'gdb':
 if args.tool == 'memcheck':
     prefix = ['valgrind', '--tool=memcheck', '--leak-check=full', '--dsymutil=yes', '--log-file=valgrind.out']
 
-cmdline = prefix + [opp_run] + lib_flags + ned_flags + omnet_args
+cmdline = prefix + [opp_run] + lib_flags + ned_flags + img_flags + omnet_args
 
 if args.verbose:
     print "Running with command line arguments: %s" % ' '.join(['"%s"' % arg for arg in cmdline])
 
-os.execvp('env', ['env'] + cmdline)
+if os.name == 'nt':
+    subprocess.call(['env'] + cmdline)
+else:
+    os.execvp('env', ['env'] + cmdline)
 

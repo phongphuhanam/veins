@@ -32,13 +32,15 @@
 #include "veins/modules/obstacle/ObstacleControl.h"
 #include "veins/modules/world/traci/trafficLight/TraCITrafficLightInterface.h"
 
-using Veins::AnnotationManagerAccess;
-using Veins::TraCIBuffer;
-using Veins::TraCICoord;
-using Veins::TraCIScenarioManager;
-using Veins::TraCITrafficLightInterface;
+using namespace veins::TraCIConstants;
 
-Define_Module(Veins::TraCIScenarioManager);
+using veins::AnnotationManagerAccess;
+using veins::TraCIBuffer;
+using veins::TraCICoord;
+using veins::TraCIScenarioManager;
+using veins::TraCITrafficLightInterface;
+
+Define_Module(veins::TraCIScenarioManager);
 
 const simsignal_t TraCIScenarioManager::traciInitializedSignal = registerSignal("org.car2x.veins.modules.mobility.traciInitialized");
 const simsignal_t TraCIScenarioManager::traciModuleAddedSignal = registerSignal("org.car2x.veins.modules.mobility.traciModuleAdded");
@@ -63,6 +65,8 @@ TraCIScenarioManager::~TraCIScenarioManager()
     cancelAndDelete(connectAndStartTrigger);
     cancelAndDelete(executeOneTimestepTrigger);
 }
+
+namespace {
 
 std::vector<std::string> getMapping(std::string el)
 {
@@ -109,6 +113,8 @@ std::vector<std::string> getMapping(std::string el)
     }
     return mapping;
 }
+
+} // namespace
 
 TraCIScenarioManager::TypeMapping TraCIScenarioManager::parseMappings(std::string parameter, std::string parameterName, bool allowEmpty)
 {
@@ -240,6 +246,7 @@ void TraCIScenarioManager::initialize(int stage)
     if (firstStepAt == -1) firstStepAt = connectAt + updateInterval;
     parseModuleTypes();
     penetrationRate = par("penetrationRate").doubleValue();
+    ignoreGuiCommands = par("ignoreGuiCommands");
     host = par("host").stdstringValue();
     port = par("port");
     autoShutdown = par("autoShutdown");
@@ -382,6 +389,7 @@ void TraCIScenarioManager::init_traci()
         }
     }
 
+    traciInitialized = true;
     emit(traciInitializedSignal, true);
 
     // draw and calculate area of rois
@@ -436,7 +444,7 @@ void TraCIScenarioManager::handleSelfMsg(cMessage* msg)
 {
     if (msg == connectAndStartTrigger) {
         connection.reset(TraCIConnection::connect(this, host.c_str(), port));
-        commandIfc.reset(new TraCICommandInterface(this, *connection));
+        commandIfc.reset(new TraCICommandInterface(this, *connection, ignoreGuiCommands));
         init_traci();
         return;
     }

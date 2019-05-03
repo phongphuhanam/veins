@@ -24,7 +24,7 @@
 
 #include <queue>
 
-namespace Veins {
+namespace veins {
 namespace SignalUtils {
 
 namespace {
@@ -89,7 +89,7 @@ double powerLevelSumAtFrequencyIndex(const std::vector<Signal*>& signals, size_t
 
 } // namespace
 
-bool isChannelPowerBelowThreshold(simtime_t now, AirFrameVector& interfererFrames, size_t freqIndex, double threshold, AirFrame* exclude)
+bool VEINS_API isChannelPowerBelowThreshold(simtime_t now, AirFrameVector& interfererFrames, size_t freqIndex, double threshold, AirFrame* exclude)
 {
     if (interfererFrames.empty()) {
         // No interferers, so the channel interference is below any threshold
@@ -130,7 +130,7 @@ bool isChannelPowerBelowThreshold(simtime_t now, AirFrameVector& interfererFrame
     return false;
 }
 
-double getMinSINR(simtime_t start, simtime_t end, AirFrame* signalFrame, AirFrameVector& interfererFrames, double noise)
+double VEINS_API getMinSINR(simtime_t start, simtime_t end, AirFrame* signalFrame, AirFrameVector& interfererFrames, double noise)
 {
     ASSERT(start >= signalFrame->getSignal().getReceptionStart());
     ASSERT(end <= signalFrame->getSignal().getReceptionEnd());
@@ -155,4 +155,4 @@ double getMinSINR(simtime_t start, simtime_t end, AirFrame* signalFrame, AirFram
 }
 
 } // namespace SignalUtils
-} // namespace Veins
+} // namespace veins

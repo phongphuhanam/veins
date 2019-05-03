@@ -26,11 +26,21 @@
 #include <iostream>
 #include <fstream>
 
-#define CMD_FILE_SEND 0x75
+namespace veins {
 
-using Veins::TraCIScenarioManagerLaunchd;
+namespace TraCIConstants {
 
-Define_Module(Veins::TraCIScenarioManagerLaunchd);
+const uint8_t CMD_FILE_SEND = 0x75;
+
+} // namespace TraCIConstants
+
+} // namespace veins
+
+using namespace veins::TraCIConstants;
+
+using veins::TraCIScenarioManagerLaunchd;
+
+Define_Module(veins::TraCIScenarioManagerLaunchd);
 
 TraCIScenarioManagerLaunchd::~TraCIScenarioManagerLaunchd()
 {

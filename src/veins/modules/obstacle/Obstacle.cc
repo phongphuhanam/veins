@@ -18,12 +18,13 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-#include <set>
+#include <algorithm>
+
 #include "veins/modules/obstacle/Obstacle.h"
 
-using namespace Veins;
+using namespace veins;
 
-using Veins::Obstacle;
+using veins::Obstacle;
 
 Obstacle::Obstacle(std::string id, std::string type, double attenuationPerCut, double attenuationPerMeter)
     : visualRepresentation(nullptr)
@@ -62,12 +63,10 @@ const Coord Obstacle::getBboxP2() const
     return bboxP2;
 }
 
-namespace {
-
-bool isPointInObstacle(Coord point, const Obstacle& o)
+bool Obstacle::containsPoint(Coord point) const
 {
     bool isInside = false;
-    const Obstacle::Coords& shape = o.getShape();
+    const Obstacle::Coords& shape = getShape();
     Obstacle::Coords::const_iterator i = shape.begin();
     Obstacle::Coords::const_iterator j = (shape.rbegin() + 1).base();
     for (; i != shape.end(); j = i++) {
@@ -82,72 +81,45 @@ bool isPointInObstacle(Coord point, const Obstacle& o)
     return isInside;
 }
 
-double segmentsIntersectAt(Coord p1From, Coord p1To, Coord p2From, Coord p2To)
+namespace {
+
+double segmentsIntersectAt(const Coord& p1From, const Coord& p1To, const Coord& p2From, const Coord& p2To)
 {
-    Coord p1Vec = p1To - p1From;
-    Coord p2Vec = p2To - p2From;
-    Coord p1p2 = p1From - p2From;
+    double p1x = p1To.x - p1From.x;
+    double p1y = p1To.y - p1From.y;
+    double p2x = p2To.x - p2From.x;
+    double p2y = p2To.y - p2From.y;
+    double p1p2x = p1From.x - p2From.x;
+    double p1p2y = p1From.y - p2From.y;
+    double D = (p1x * p2y - p1y * p2x);
 
-    double D = (p1Vec.x * p2Vec.y - p1Vec.y * p2Vec.x);
-
-    double p1Frac = (p2Vec.x * p1p2.y - p2Vec.y * p1p2.x) / D;
+    double p1Frac = (p2x * p1p2y - p2y * p1p2x) / D;
     if (p1Frac < 0 || p1Frac > 1) return -1;
 
-    double p2Frac = (p1Vec.x * p1p2.y - p1Vec.y * p1p2.x) / D;
+    double p2Frac = (p1x * p1p2y - p1y * p1p2x) / D;
     if (p2Frac < 0 || p2Frac > 1) return -1;
 
     return p1Frac;
 }
 } // namespace
 
-double Obstacle::calculateAttenuation(const Coord& senderPos, const Coord& receiverPos) const
+std::vector<double> Obstacle::getIntersections(const Coord& senderPos, const Coord& receiverPos) const
 {
-
-    // if obstacles has neither borders nor matter: bail.
-    if (getShape().size() < 2) return 1;
-
-    // get a list of points (in [0, 1]) along the line between sender and receiver where the beam intersects with this obstacle
-    std::multiset<double> intersectAt;
-    bool doesIntersect = false;
+    std::vector<double> intersectAt;
     const Obstacle::Coords& shape = getShape();
     Obstacle::Coords::const_iterator i = shape.begin();
     Obstacle::Coords::const_iterator j = (shape.rbegin() + 1).base();
     for (; i != shape.end(); j = i++) {
-        Coord c1 = *i;
-        Coord c2 = *j;
+        const Coord& c1 = *i;
+        const Coord& c2 = *j;
 
         double i = segmentsIntersectAt(senderPos, receiverPos, c1, c2);
         if (i != -1) {
-            doesIntersect = true;
-            intersectAt.insert(i);
+            intersectAt.push_back(i);
         }
     }
-
-    // if beam interacts with neither borders nor matter: bail.
-    bool senderInside = isPointInObstacle(senderPos, *this);
-    bool receiverInside = isPointInObstacle(receiverPos, *this);
-    if (!doesIntersect && !senderInside && !receiverInside) return 1;
-
-    // remember number of cuts before messing with intersection points
-    double numCuts = intersectAt.size();
-
-    // for distance calculation, make sure every other pair of points marks transition through matter and void, respectively.
-    if (senderInside) intersectAt.insert(0);
-    if (receiverInside) intersectAt.insert(1);
-    ASSERT((intersectAt.size() % 2) == 0);
-
-    // sum up distances in matter.
-    double fractionInObstacle = 0;
-    for (std::multiset<double>::const_iterator i = intersectAt.begin(); i != intersectAt.end();) {
-        double p1 = *(i++);
-        double p2 = *(i++);
-        fractionInObstacle += (p2 - p1);
-    }
-
-    // calculate attenuation
-    double totalDistance = senderPos.distance(receiverPos);
-    double attenuation = (attenuationPerCut * numCuts) + (attenuationPerMeter * fractionInObstacle * totalDistance);
-    return pow(10.0, -attenuation / 10.0);
+    std::sort(intersectAt.begin(), intersectAt.end());
+    return intersectAt;
 }
 
 std::string Obstacle::getType() const
@@ -158,4 +130,14 @@ std::string Obstacle::getType() const
 std::string Obstacle::getId() const
 {
     return id;
+}
+
+double Obstacle::getAttenuationPerCut() const
+{
+    return attenuationPerCut;
+}
+
+double Obstacle::getAttenuationPerMeter() const
+{
+    return attenuationPerMeter;
 }

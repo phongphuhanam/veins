@@ -31,9 +31,9 @@
 
 #include "veins/veins.h"
 
-namespace Veins {
+namespace veins {
 
-class Spectrum {
+class VEINS_API Spectrum {
 public:
     using Frequency = double;
     using Frequencies = std::vector<Frequency>;
@@ -49,12 +49,12 @@ public:
 
     double freqAt(size_t freqIndex) const;
 
-    friend bool operator==(const Spectrum& lhs, const Spectrum& rhs);
+    friend bool VEINS_API operator==(const Spectrum& lhs, const Spectrum& rhs);
 
-    friend std::ostream& operator<<(std::ostream& os, const Spectrum& s);
+    friend std::ostream& VEINS_API operator<<(std::ostream& os, const Spectrum& s);
 
 private:
     Frequencies frequencies;
 };
 
-} // namespace Veins
+} // namespace veins

@@ -16,9 +16,13 @@
 
 #include "veins/base/utils/NetwToMacControlInfo.h"
 
-using namespace Veins;
+using namespace veins;
+
+namespace {
 
 using tNetwToMacControlInfoBase = NetwToMacControlInfo;
+
+} // namespace
 
 cObject* const NetwToMacControlInfo::setControlInfo(cMessage* const pMsg, const LAddress::L2Type& pDestAddr)
 {

@@ -28,6 +28,8 @@
 
 using omnetpp::SimTime;
 
+namespace veins {
+
 /** @brief Bit rates for 802.11p
  *
  * as defined in Table 17-14 MIB attribute default values/ranges in the IEEE 802.11-2007 standard
@@ -128,8 +130,6 @@ const SimTime GUARD_INTERVAL_11P = SimTime().setRaw(4000000000UL);
 
 const Bandwidth BANDWIDTH_11P = Bandwidth::ofdm_10_mhz;
 
-namespace Veins {
-
 /** @brief Channels as reserved by the FCC
  *
  */
@@ -162,4 +162,4 @@ enum class ChannelType {
     control = 0,
     service,
 };
-} // namespace Veins
+} // namespace veins

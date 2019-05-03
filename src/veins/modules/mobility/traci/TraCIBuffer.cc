@@ -5,7 +5,9 @@
 #include <iomanip>
 #include <sstream>
 
-namespace Veins {
+using namespace veins::TraCIConstants;
+
+namespace veins {
 
 bool TraCIBuffer::timeAsDouble = true;
 
@@ -136,11 +138,11 @@ simtime_t TraCIBuffer::read()
     }
 }
 
-bool isBigEndian()
+bool VEINS_API isBigEndian()
 {
     short a = 0x0102;
     unsigned char* p_a = reinterpret_cast<unsigned char*>(&a);
     return (p_a[0] == 0x01);
 }
 
-} // namespace Veins
+} // namespace veins
